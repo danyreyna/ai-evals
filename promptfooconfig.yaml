@@ -9,7 +9,10 @@ prompts:
   - "Write a concise, funny tweet about {{topic}}"
 
 providers:
-  - "file://provider.ts"
+  - id: "file://claude-code-provider.ts"
+    label: "Claude Code Provider"
+    config:
+      model: "haiku"
 
 tests:
   - vars:
