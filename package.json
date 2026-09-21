@@ -6,6 +6,8 @@
   "devDependencies": {
     "@types/bun": "latest",
     "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "oxlint-tsgolint": "7.0.2002",
     "promptfoo": "0.123.1"
   },
   "peerDependencies": {

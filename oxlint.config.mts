@@ -1,0 +1,46 @@
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["eslint", "typescript", "unicorn", "oxc", "import"],
+  categories: {
+    correctness: "error",
+  },
+  rules: {
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-regex-spaces": "error",
+    "preserve-caught-error": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-enum-comparison": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/require-await": "error",
+    "typescript/restrict-plus-operands": "error",
+    "import/no-cycle": ["error", { maxDepth: 3 }],
+    curly: "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-import-type-side-effects": "error",
+    "import/consistent-type-specifier-style": "error",
+  },
+  env: {
+    builtin: true,
+  },
+  ignorePatterns: ["node_modules/**", "dist/**", "coverage/**", "vendor/**", "test/snapshots/**"],
+  options: {
+    reportUnusedDisableDirectives: "warn",
+    typeAware: true,
+  },
+});
