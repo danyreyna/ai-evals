@@ -37,3 +37,15 @@ tests:
       # For more information on model-graded evals, see https://promptfoo.dev/docs/configuration/expected-outputs/model-graded
       - type: llm-rubric
         value: ensure that the output is funny
+
+  # TODO: coding agent
+  - assert:
+      - type: agent-rubric
+        value: Verify that the output accurately describes the exported API in src/report.ts.
+        provider:
+          id: openai:codex-sdk
+          config:
+            working_dir: ./sample-project
+            sandbox_mode: read-only
+            approval_policy: never
+            skip_git_repo_check: true
