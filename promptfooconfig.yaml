@@ -14,6 +14,11 @@ providers:
     config:
       model: "haiku"
 
+# TODO: grader
+defaultTest:
+  options:
+    provider: anthropic:claude-sonnet-5
+
 tests:
   - vars:
       topic: bananas
