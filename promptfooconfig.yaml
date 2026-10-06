@@ -2,7 +2,7 @@
 
 # Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
 
-description: "My eval"
+description: "Prompt evaluation and iteration exercise for a given task."
 
 prompts:
   - "Write a tweet about {{topic}}"
