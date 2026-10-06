@@ -216,4 +216,19 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 
 **Prediction (written before running):** overall 10/10, assertion_quality 10/10, all other metrics 10/10. Because 10 runs cannot resolve 95%, the result must be confirmed with `bun run eval --repeat 20` (19/20 or better).
 
-**Result:** pending.
+**Result (10 runs, `tests/evaluations/results-v4.json`):** overall **10/10 (100%)**. Cost 1.08M tokens, 11.1 min. All 8 metrics 10/10.
+
+| Metric                | Predicted | v3    | v4    |
+| --------------------- | --------- | ----- | ----- |
+| tests_pass            | 10/10     | 10/10 | 10/10 |
+| method_coverage       | 10/10     | 10/10 | 10/10 |
+| error_coverage        | 10/10     | 10/10 | 10/10 |
+| project_conventions   | 10/10     | 10/10 | 10/10 |
+| scope_discipline      | 10/10     | 10/10 | 10/10 |
+| mutation_score        | 10/10     | 10/10 | 10/10 |
+| assertion_quality     | 10/10     | 9/10  | 10/10 |
+| isolation_determinism | 10/10     | 10/10 | 10/10 |
+
+**Reasoning:** the prediction held. Rewording one constraint to remove the "message-only test is not an error test" reading fixed the only failing metric, with no other change. Caveat: 10/10 on 10 runs is a point estimate, not proof of 95% (if the true rate were 90%, a clean 10/10 would still occur about 35% of the time). v2 and v3 each lost one run to a stray judge-flagged test, so a single 20-run confirmation is required before claiming the target.
+
+**Next:** `bun run eval --repeat 20`, pass bar 19/20 or better.
