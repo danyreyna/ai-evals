@@ -344,3 +344,56 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 **Load-bearing note:** the v5 Role maps to mutation_score and assertion_quality by design, but this run gives no evidence that it helps or hurts (suite shapes were unchanged). The 8/8 claim is by construction, not by measurement.
 
 **Next:** iteration 6 targets the two specific test shapes behind runs 1, 6 and 12.
+
+### Iteration 6: forbid result-discarding and error-swallowing tests (REFACTOR)
+
+**Prompt:** `tests/prompts/prompt-to-test-v6.md`
+
+```
+# Role
+
+You are a TypeScript test engineer who writes tests that fail when the client's behavior breaks.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every test that expects a `PaymentsApiError` must assert both the HTTP status and the error code, even if it also checks the message.
+- Every test must assert on the value the client call returns or on the `PaymentsApiError` it throws. Never swallow a rejection with `.catch`, and never assert only on a captured request.
+```
+
+**Baseline (v5, 20 runs):** 16/20 overall. Failures: run 1 (swallowed `.catch`), runs 6 and 12 (request-inspection tests
+that discard the return value), run 18 (judge parse failure, not prompt related).
+
+**Hypothesis:** v4 and v5 produce the same two risky test shapes at similar rates (handler overrides in about 65% of
+suites, swallowed catches in about 20%), and the rubric penalizes them intermittently. Stating the rule directly removes
+the ambiguity, so the model either asserts the returned value in wire-level tests or writes them differently, and never
+swallows a rejection. Only the Constraints section changes (one added bullet), so any regression is attributable to it.
+The new bullet maps to assertion_quality, so the load-bearing share stays at 100%. Risk: the "never assert only on a
+captured request" clause could push the model away from the handler-override tests that kill the header and body
+mutants, so mutation_score is the metric to watch. Those mutants are also catchable through the real mock server (401 on
+a bad key, 400 on a dropped body), so I do not expect a drop.
+
+**Prediction (written before running, `bun run eval --repeat 20`):**
+
+| Metric                    | Expected pass rate |
+| ------------------------- | ------------------ |
+| tests_pass                | 20/20              |
+| method_coverage           | 20/20              |
+| error_coverage            | 20/20              |
+| project_conventions       | 20/20              |
+| scope_discipline          | 20/20              |
+| mutation_score            | 19 to 20 of 20     |
+| assertion_quality         | 18 to 20 of 20     |
+| isolation_determinism     | 20/20              |
+| **Overall run pass rate** | **18 to 20 of 20** |
+
+A judge parse failure like run 18 can still cost one run, so 19/20 is the realistic pass line.
+
+**Result:** pending.
