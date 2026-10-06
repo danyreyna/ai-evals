@@ -16,7 +16,7 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 
 ## Promptfoo prompt evaluation
 
-## Quick start
+### Quick start
 
 1. Edit `promptfooconfig.yaml` to customize prompts, providers, and test cases.
 
@@ -32,7 +32,7 @@ promptfoo eval
 promptfoo view
 ```
 
-## Learn more
+### Learn more
 
 - Configuration guide: https://promptfoo.dev/docs/configuration/guide
 - All providers: https://promptfoo.dev/docs/providers
