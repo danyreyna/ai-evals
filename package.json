@@ -2,6 +2,7 @@
   "name": "ai-evals",
   "private": true,
   "type": "module",
+  "module": "src/index.ts",
   "scripts": {
     "eval": "promptfoo eval --no-cache",
     "view": "promptfoo view"
