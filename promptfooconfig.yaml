@@ -5,8 +5,7 @@
 description: "Prompt evaluation and iteration exercise for a given task."
 
 prompts:
-  - "Write a tweet about {{topic}}"
-  - "Write a concise, funny tweet about {{topic}}"
+  - file://src/prompt-to-test.md
 
 providers:
   - id: anthropic:claude-agent-sdk
