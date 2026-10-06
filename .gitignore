@@ -39,3 +39,6 @@ docs/promptfoo/**/*.ts
 docs/promptfoo/**/*.png
 docs/promptfoo/**/*.md
 docs/promptfoo/**/*.json
+
+# Mutation-testing scratch copies (used by tests/assertions/mutation.mjs and tests/assertions/common.mjs)
+.mutants
