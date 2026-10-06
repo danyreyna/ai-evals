@@ -276,3 +276,45 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 | Clear pass/fail thresholds                | Met                                             |
 | At least 2 iterations with full records   | Met: 4 iterations plus confirmation             |
 | Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 and v4 Refactor       |
+
+### Iteration 5: make the Role load-bearing (REFACTOR)
+
+**Prompt:** `tests/prompts/prompt-to-test-v5.md`
+
+```
+# Role
+
+You are a TypeScript test engineer who writes tests that fail when the client's behavior breaks.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every test that expects a `PaymentsApiError` must assert both the HTTP status and the error code, even if it also checks the message.
+```
+
+**Baseline (v4, 20 runs):** 19/20 overall. Only failure: assertion_quality 19/20 (run 7, helper `captureError` checked only that a `PaymentsApiError` was thrown). Load-bearing share 7/8 = 87.5%, below the 90% bar because the Role maps to no criterion.
+
+**Hypothesis:** the Role line is framing only. Rewording it to state the outcome the suite must achieve ("fail when the client's behavior breaks") ties it to mutation_score and assertion_quality, which lifts the load-bearing share to 8/8 while keeping the RTCC structure. This is one line changed, so any regression is attributable to it. It is a requirements fix, not a pass-rate fix, so the expected pass rate is unchanged from v4. The helper-function loophole behind the v4 miss is deliberately left for iteration 6 if v5 shows it again.
+
+**Prediction (written before running, `bun run eval --repeat 20`):**
+
+| Metric                    | Expected pass rate |
+| ------------------------- | ------------------ |
+| tests_pass                | 20/20              |
+| method_coverage           | 20/20              |
+| error_coverage            | 20/20              |
+| project_conventions       | 20/20              |
+| scope_discipline          | 20/20              |
+| mutation_score            | 20/20              |
+| assertion_quality         | 18 to 20 of 20     |
+| isolation_determinism     | 20/20              |
+| **Overall run pass rate** | **18 to 20 of 20** |
+
+**Result:** pending.
