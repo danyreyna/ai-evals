@@ -1,1 +1,38 @@
-TODO
+# TODO: Replace these examples with your actual assertions
+- vars:
+    topic: bananas
+
+- vars:
+    topic: avocado toast
+  assert:
+    # For more information on assertions, see https://promptfoo.dev/docs/configuration/expected-outputs
+
+    # Make sure output contains the word "avocado"
+    - type: icontains
+      value: avocado
+
+    # Prefer shorter outputs
+    - type: javascript
+      value: 1 / (output.length + 1)
+
+- vars:
+    topic: new york city
+  assert:
+    # For more information on model-graded evals, see https://promptfoo.dev/docs/configuration/expected-outputs/model-graded
+    - type: llm-rubric
+      value: ensure that the output is funny
+
+- assert:
+    - type: agent-rubric
+      value: Inspect the project and verify that the response names the correct configuration file.
+      # Coding agent grader
+      provider:
+        id: anthropic:claude-agent-sdk
+        config:
+          # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
+          apiKeyRequired: false
+          # Don't add evaluations transcripts to Claude Code at ~/.claude/projects/
+          persist_session: false
+          model: sonnet
+          effort: medium
+          working_dir: ./src
