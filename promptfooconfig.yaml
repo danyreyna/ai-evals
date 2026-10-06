@@ -30,6 +30,9 @@ defaultTest:
     provider: "local-claude-code"
 
 tests:
+  - file://src/tests/some-test.yaml
+
+  # all the following tests are boilerplate that will be removed
   - vars:
       topic: bananas
 
