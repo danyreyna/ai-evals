@@ -36,4 +36,6 @@ defaultTest:
 tests:
   - file://tests/prompt-tests.yaml
 
-outputPath: tests/evaluations/results.html
+outputPath:
+  - tests/evaluations/results.json
+  - tests/evaluations/results.html
