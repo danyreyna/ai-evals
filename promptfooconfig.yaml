@@ -20,6 +20,11 @@ providers:
       ask_user_question:
         behavior: first_option
 
+# Reset `src/` before every run.
+# Snapshot the test files the agent under test creates to `tests/evaluations/generated/`
+extensions:
+  - file://tests/hooks/working-dir.mjs:extensionHook
+
 defaultTest:
   options:
     # Default grader. Text-only: no `working_dir` and no `tools`, so it only judges the output.
