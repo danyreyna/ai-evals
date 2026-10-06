@@ -18,6 +18,7 @@ providers:
       tools:
         type: preset
         preset: claude_code
+      setting_sources: ["project"]
 
 # TODO: grader
 defaultTest:
