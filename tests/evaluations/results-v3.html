@@ -1,0 +1,3588 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Prompt evaluation and iteration exercise for a given task.</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --page-bg: #f4f6fb;
+        --surface: #ffffff;
+        --surface-muted: #f7f8fc;
+        --border: #d8deea;
+        --text: #172033;
+        --text-muted: #55627a;
+        --accent: #2157d6;
+        --pass: #147d42;
+        --pass-bg: #e9f8ef;
+        --fail: #b42318;
+        --fail-bg: #fff0ef;
+        --error: #9a3412;
+        --error-bg: #fff4e8;
+        --shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page-bg);
+        color: var(--text);
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+      }
+
+      .page {
+        width: min(1600px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .hero,
+      .report-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        display: grid;
+        gap: 24px;
+        padding: 28px;
+      }
+
+      .brand-lockup {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        width: fit-content;
+        margin-bottom: 12px;
+      }
+
+      .brand-logo {
+        display: block;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+      }
+
+      .brand-name {
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(28px, 3vw, 40px);
+        line-height: 1.1;
+      }
+
+      .meta-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .meta-list li {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--text-muted);
+        background: var(--surface-muted);
+        font-size: 13px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+      }
+
+      .metric {
+        min-height: 112px;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-muted);
+      }
+
+      .metric-label {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin: 12px 0 0;
+        font-size: 30px;
+        font-weight: 750;
+        line-height: 1;
+      }
+
+      .metric.pass .metric-value {
+        color: var(--pass);
+      }
+
+      .metric.fail .metric-value {
+        color: var(--fail);
+      }
+
+      .metric.error .metric-value {
+        color: var(--error);
+      }
+
+      .report-panel {
+        margin-top: 20px;
+        overflow: hidden;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .toolbar-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .control {
+        display: grid;
+        gap: 6px;
+      }
+
+      .control label {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .control input,
+      .control select {
+        min-height: 42px;
+        min-width: 220px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--text);
+        font: inherit;
+        padding: 0 12px;
+      }
+
+      .control input:focus,
+      .control select:focus {
+        outline: 2px solid rgba(33, 87, 214, 0.2);
+        border-color: var(--accent);
+      }
+
+      .toolbar-summary {
+        display: flex;
+        align-items: end;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .table-shell {
+        max-height: min(72vh, 980px);
+        overflow: auto;
+        background: var(--surface);
+      }
+
+      table,
+      th,
+      td {
+        border-collapse: collapse;
+        border-spacing: 0;
+        text-align: left;
+      }
+
+      table {
+        width: 100%;
+        min-width: 920px;
+      }
+
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      th {
+        background: #eef2fb;
+        color: #24324b;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      th,
+      td {
+        min-width: 220px;
+        padding: 12px 16px;
+        white-space: pre-wrap;
+        vertical-align: top;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        word-break: break-word;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-right: 0;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fbfcff;
+      }
+
+      tbody tr:hover {
+        background: #f5f8ff;
+      }
+
+      .cell-content {
+        max-width: 560px;
+        color: var(--text);
+        line-height: 1.55;
+      }
+
+      td[data-status='pass'] {
+        background: linear-gradient(90deg, var(--pass-bg), rgba(255, 255, 255, 0));
+      }
+
+      td[data-status='fail'] {
+        background: linear-gradient(90deg, var(--fail-bg), rgba(255, 255, 255, 0));
+      }
+
+      td[data-status='error'] {
+        background: linear-gradient(90deg, var(--error-bg), rgba(255, 255, 255, 0));
+      }
+
+      .output-cell {
+        display: grid;
+        gap: 10px;
+      }
+
+      .output-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-pill,
+      .score-pill,
+      .named-score-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .status-pill.pass {
+        color: var(--pass);
+        background: #daf2e4;
+      }
+
+      .status-pill.fail {
+        color: var(--fail);
+        background: #ffdeda;
+      }
+
+      .status-pill.error {
+        color: var(--error);
+        background: #ffe4c7;
+      }
+
+      .score-pill,
+      .named-score-pill {
+        color: var(--text-muted);
+        background: rgba(23, 32, 51, 0.06);
+      }
+
+      .output-section {
+        display: grid;
+        gap: 4px;
+      }
+
+      .output-section-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+      }
+
+      .output-text,
+      .output-reason,
+      .variable-text {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .output-text,
+      .variable-text {
+        color: var(--text);
+        line-height: 1.55;
+      }
+
+      .output-reason {
+        margin: 0;
+        padding-left: 12px;
+        border-left: 3px solid rgba(23, 32, 51, 0.14);
+        color: var(--text-muted);
+        line-height: 1.55;
+      }
+
+      .detail-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--surface);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .detail-button:hover,
+      .detail-button:focus-visible {
+        border-color: rgba(33, 87, 214, 0.45);
+        background: #f5f8ff;
+        outline: none;
+      }
+
+      body.detail-open {
+        overflow: hidden;
+      }
+
+      .detail-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        background: rgba(23, 32, 51, 0.38);
+      }
+
+      .detail-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 21;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        width: min(620px, calc(100vw - 24px));
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: -20px 0 48px rgba(23, 32, 51, 0.22);
+      }
+
+      .detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .detail-heading {
+        min-width: 0;
+      }
+
+      .detail-title {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.2;
+      }
+
+      .detail-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--surface);
+        cursor: pointer;
+      }
+
+      .detail-close-icon {
+        position: relative;
+        display: block;
+        width: 16px;
+        height: 16px;
+      }
+
+      .detail-close-icon::before,
+      .detail-close-icon::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 2px;
+        border-radius: 999px;
+        background: currentColor;
+        content: '';
+        transform-origin: center;
+      }
+
+      .detail-close-icon::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+      }
+
+      .detail-close-icon::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+      }
+
+      .detail-close:hover,
+      .detail-close:focus-visible {
+        border-color: rgba(33, 87, 214, 0.45);
+        background: #f5f8ff;
+        outline: none;
+      }
+
+      .detail-body {
+        display: grid;
+        align-content: start;
+        overflow: auto;
+        padding: 24px;
+      }
+
+      .detail-content {
+        display: grid;
+        gap: 24px;
+      }
+
+      .detail-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .detail-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .detail-metric {
+        display: grid;
+        align-content: center;
+        gap: 8px;
+        min-height: 96px;
+        padding: 18px 20px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-muted);
+      }
+
+      .detail-metric-label,
+      .detail-section-title,
+      .detail-variable-name {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+      }
+
+      .detail-metric-value {
+        color: var(--text);
+        font-size: 16px;
+        font-weight: 750;
+      }
+
+      .detail-section {
+        display: grid;
+        gap: 10px;
+      }
+
+      .detail-copy {
+        margin: 0;
+        padding: 18px 20px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--surface-muted);
+        line-height: 1.65;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .detail-reason {
+        border-left: 4px solid rgba(23, 32, 51, 0.16);
+      }
+
+      .detail-variables {
+        display: grid;
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-muted);
+      }
+
+      .detail-variable {
+        display: grid;
+        gap: 6px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .detail-variable:last-child {
+        border-bottom: 0;
+      }
+
+      .detail-variable-value {
+        margin: 0;
+        color: var(--text);
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .empty-state {
+        display: none;
+        margin: 0;
+        padding: 28px 20px;
+        color: var(--text-muted);
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .empty-state.visible {
+        display: block;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(100%, calc(100vw - 20px));
+          padding-top: 10px;
+        }
+
+        .hero {
+          padding: 20px;
+        }
+
+        .toolbar {
+          padding: 16px;
+        }
+
+        .toolbar-controls,
+        .control input,
+        .control select {
+          width: 100%;
+        }
+
+        .control {
+          flex: 1 1 100%;
+        }
+
+        .toolbar-summary {
+          width: 100%;
+        }
+
+        .detail-metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero" aria-labelledby="report-title">
+        <div>
+          <div class="brand-lockup" aria-label="Promptfoo">
+            <img
+              class="brand-logo"
+              src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyNS4yLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHZpZXdCb3g9IjIwMCAzMjUgMjAwIDIwMCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTk1LjI4IDg0MS44OTsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO30NCgkuc3Qxe2ZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO2ZpbGw6I0ZFMkMwNjt9DQoJLnN0MntmaWxsLXJ1bGU6ZXZlbm9kZDtjbGlwLXJ1bGU6ZXZlbm9kZDtmaWxsOiM4QTBBMUM7fQ0KCS5zdDN7Y2xpcC1wYXRoOnVybCgjU1ZHSURfMl8pO2ZpbGw6dXJsKCNTVkdJRF8zXyk7fQ0KCS5zdDR7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojRkVGRUZFO30NCgkuc3Q1e2ZpbGw6bm9uZTtzdHJva2U6IzM3MzQzNTtzdHJva2Utd2lkdGg6MC4yMTY7c3Ryb2tlLW1pdGVybGltaXQ6Mi42MTMxO30NCjwvc3R5bGU+DQo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMjM5Ljc2LDQ1MS45N2w1Ny42OCw1OC44OWw0NC4zMi00NS4yNWwxNy4xNCwyMC4xOWwwLjgyLDAuMzljMi45MSwxLjM5LDYuNDYsMC4xOCw4LjkyLTEuNTkNCgljMy0yLjE2LDQuOTYtNi4yLDIuODEtOS42NGwtMC4xNS0wLjIzbC0xNC44Ni0xOC4wOGwtMS43MywxLjI2bC0xLjkyLTIuMjhsMC42My0wLjg5YzIuNjctMy44MSw0LjA4LTguMzEsNC4wOC0xMi45Ng0KCWMwLTEuNDMtMC4xMy0yLjg1LTAuNC00LjI1bC0wLjE3LTAuODhsMC43OC0wLjU3YzAuMzktMC4yOCwwLjc3LTAuNTcsMS4xNS0wLjg3YzMuOTctMy4wNyw3LjUyLTYuNjYsMTAuOTUtMTAuM2wyLjYzLTIuNzkNCglsLTEyLjI5LTE0LjI4bDAuNDItMC44NWMyLjI1LTQuNDgsMy45Ni05LjQyLDUuMTgtMTQuMjhsMC4wNi0wLjI0YzEtNC4wNywxLjczLTguMzUsMS44OS0xMi41NWMwLjI4LTcuMDgsMC41MS0xNC4xOSwwLjM0LTIxLjI4DQoJbC0wLjA5LTMuOTVsLTMuOTUtMC4xOWMtNC4xOC0wLjItOC41MSwwLjEtMTIuNjYsMC41OWMtNy44OCwwLjkzLTE1Ljk2LDIuOTEtMjMuMDQsNi41NWwtMS4zMSwwLjY3bC02LjgxLTE0LjQ5bC0yMi43NS05LjUxDQoJbC0yMi43NSw5LjUxbC02LjgxLDE0LjQ5bC0xLjMxLTAuNjdjLTcuMDgtMy42NC0xNS4xNi01LjYyLTIzLjA0LTYuNTVjLTQuMTUtMC40OS04LjQ4LTAuNzktMTIuNjYtMC41OWwtMy45NSwwLjE5bC0wLjA5LDMuOTUNCgljLTAuMTcsNy4wOSwwLjA3LDE0LjE5LDAuMzQsMjEuMjhjMC4xNiw0LjE5LDAuODksOC40OCwxLjg5LDEyLjU1bDAuMDYsMC4yNGMxLjIxLDQuODYsMi45Miw5LjgsNS4xNywxNC4yOGwwLjQyLDAuODVsLTEyLjI5LDE0LjI4DQoJbDIuNjMsMi43OWMzLjQzLDMuNjQsNi45OSw3LjIzLDEwLjk1LDEwLjNjMC4wNSwwLjA0LDAuMSwwLjA4LDAuMTYsMC4xMmwwLjQzLDAuMzNMMjM5Ljc2LDQ1MS45N3oiLz4NCjxwb2x5Z29uIGNsYXNzPSJzdDEiIHBvaW50cz0iMjk3LjQ0LDM0Mi45NCAzMTcuMDMsMzUxLjEyIDMyNS43MSwzNjkuNTkgMjk3LjQ0LDM2OS41OSAiLz4NCjxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yOTcuNDQsMzc4LjE3bDMwLjY5LDAuMDhsMjEsMTEuM2MtMTcuMjMsMi4wOS0zMC4zNywzLjczLTUxLjY5LDMuODJWMzc4LjE3eiIvPg0KPHBhdGggY2xhc3M9InN0MiIgZD0iTTI3Ny4xMSw0MTAuOTVjMi4xOSwwLDMuOTYsMS43NywzLjk2LDMuOTZjMCwyLjE5LTEuNzcsMy45Ni0zLjk2LDMuOTZjLTIuMTksMC0zLjk2LTEuNzctMy45Ni0zLjk2DQoJQzI3My4xNSw0MTIuNzMsMjc0LjkzLDQxMC45NSwyNzcuMTEsNDEwLjk1IE0yOTcuNDQsMzk3LjljLTE0LjM4LTAuMjctMjkuMzctMS4xNS00NS45LTMuMDZMMjI4LjE1LDQyMg0KCWMxMC40LDExLjA0LDE1Ljc4LDE0LjcsMzEuNDcsMjAuMzVjMTQuMjMsNS4xMiwzMS40MSwxMS4zLDM3LjgyLDExLjUzdi05LjNoLTUuNDVjMCwwLTAuNzYtMC4yMi0wLjk1LTEuNzgNCgljLTAuMTktMS41NiwxLjAyLTEuNzQsMS4wMi0xLjc0aDN2LTQuNjFjMCwwLTQuMjktMi4yMy01LjI3LTUuMmMtMC40OS0xLjUtMC4zOS0yLjUyLTAuMDMtMy4yMmMwLjkxLTEuNzgsMy4xOC0xLjkyLDQuOS0xLjkyaDIuNzcNCglWMzk3Ljl6Ii8+DQo8cGF0aCBjbGFzcz0ic3QyIiBkPSJNMjk3LjQ0LDQ1Ny42MXYxNS42N2wtMjIuNjctMjEuODNDMjc0Ljc2LDQ1MS40NiwyODguMDYsNDU2Ljg3LDI5Ny40NCw0NTcuNjEiLz4NCjxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0yNDEuNjUsNDM5LjM3YzAsMCw5LjEyLDQuMzgsMTUuNjEsNi43NGM2LjQ5LDIuMzUsMTAuNTYsMy41NywxMC41NiwzLjU3bDI5LjYyLDI5LjA2djI2LjA1bC01My43NS01NC44OA0KCUwyNDEuNjUsNDM5LjM3eiIvPg0KPHBhdGggY2xhc3M9InN0MSIgZD0iTTMxNy43Niw0MTAuOTVjLTIuMTksMC0zLjk2LDEuNzctMy45NiwzLjk2YzAsMi4xOSwxLjc3LDMuOTYsMy45NiwzLjk2YzIuMTksMCwzLjk2LTEuNzcsMy45Ni0zLjk2DQoJQzMyMS43Miw0MTIuNzMsMzE5Ljk0LDQxMC45NSwzMTcuNzYsNDEwLjk1IE0yOTcuNDQsMzk3LjljMTQuMzgtMC4yNywyOS4zNy0xLjE1LDQ1LjktMy4wNkwzNjYuNzIsNDIyDQoJYy00LjM0LDQuNjEtNy44MSw3LjkzLTExLjUyLDEwLjY1Yy0zLjQ5LTcuNzQtMTEuMjctMTMuMTMtMjAuMzEtMTMuMTNjLTEyLjI5LDAtMjIuMjYsOS45Ni0yMi4yNiwyMi4yNmMwLDIuOCwwLjUyLDUuNDcsMS40Niw3Ljk0DQoJYy03LjE3LDIuMzMtMTMuMzUsNC4wMy0xNi42Niw0LjE1di05LjNoNS40NWMwLDAsMC43Ni0wLjIyLDAuOTUtMS43OGMwLjE5LTEuNTYtMS4wMi0xLjc0LTEuMDItMS43NGgtM3YtNC42MQ0KCWMwLDAsNC4yOS0yLjIzLDUuMjctNS4yYzAuNDktMS41LDAuMzktMi41MiwwLjAzLTMuMjJjLTAuOTEtMS43OC0zLjE4LTEuOTItNC45LTEuOTJoLTIuNzdWMzk3Ljl6Ii8+DQo8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMjk3LjQ0LDQ1Ny42MXYxNS42N2wxOS4zMi0xOC42Yy0wLjM3LTAuNTEtMC43MS0xLjA0LTEuMDMtMS41OUMzMTEuMDIsNDU0Ljc2LDMwMy40Myw0NTcuMTQsMjk3LjQ0LDQ1Ny42MSIvPg0KPHBhdGggY2xhc3M9InN0MSIgZD0iTTMxOS4xLDQ1Ny40N2wtMjEuNjcsMjEuMjZ2MjYuMDVsNDAuMDUtNDAuODljLTAuODUsMC4xLTEuNzIsMC4xNS0yLjYsMC4xNQ0KCUMzMjguNzIsNDY0LjA0LDMyMy4xNCw0NjEuNTMsMzE5LjEsNDU3LjQ3Ii8+DQo8cG9seWdvbiBjbGFzcz0ic3QyIiBwb2ludHM9IjI5Ny40NCwzNDIuOTQgMjc3Ljg0LDM1MS4xMiAyNjkuMTYsMzY5LjU5IDI5Ny40NCwzNjkuNTkgIi8+DQo8cGF0aCBjbGFzcz0ic3QyIiBkPSJNMjk3LjQ0LDM3OC4xN2wtMzAuNjksMC4wOGwtMjEsMTEuM2MxNy4yMywyLjA5LDMwLjM3LDMuNzMsNTEuNjksMy44MlYzNzguMTd6Ii8+DQo8Zz4NCgk8ZGVmcz4NCgkJPHBhdGggaWQ9IlNWR0lEXzFfIiBkPSJNMzQ2LjAzLDQ0MS44MmMtMC4wMiw2LjEzLTUsMTEuMDktMTEuMTQsMTEuMDljLTMuNywwLTYuOTctMS44LTktNC41OEwzNDYuMDMsNDQxLjgyeiBNMzM0Ljg5LDQzMC42NA0KCQkJYzQuNzcsMCw4Ljg0LDMsMTAuNDMsNy4yMmwtMjEuMTcsNi44NWMtMC4yNS0wLjkzLTAuMzktMS45Mi0wLjM5LTIuOTNDMzIzLjc1LDQzNS42MywzMjguNzQsNDMwLjY0LDMzNC44OSw0MzAuNjR6Ii8+DQoJPC9kZWZzPg0KCTxjbGlwUGF0aCBpZD0iU1ZHSURfMl8iPg0KCQk8dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF8xXyIgIHN0eWxlPSJvdmVyZmxvdzp2aXNpYmxlOyIvPg0KCTwvY2xpcFBhdGg+DQoJPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8zXyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIzMzcuMDI4MSIgeTE9IjQ0Ni42NTkiIHgyPSIzMzIuMDM4MSIgeTI9IjQzNS4yNjkiPg0KCQk8c3RvcCAgb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojRkUyQzA2Ii8+DQoJCTxzdG9wICBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiM4QTBBMUMiLz4NCgk8L2xpbmVhckdyYWRpZW50Pg0KCTxyZWN0IHg9IjMyMy43NSIgeT0iNDMwLjY0IiBjbGFzcz0ic3QzIiB3aWR0aD0iMjIuMjciIGhlaWdodD0iMjIuMjciLz4NCjwvZz4NCjxwYXRoIGNsYXNzPSJzdDQiIGQ9Ik0zMTQuMDksNDQ5LjcyYy03LjE3LDIuMzMtMTMuMzUsNC4wMy0xNi42Niw0LjE1Yy0zLjk1LTAuMTQtMTIuMDEtMi41NS0yMC45NC01LjU4DQoJYy0xLjcyLTIuMzMtMi41NC00LjMzLTIuNzgtNi44N2MtMC43Ni04LjMxLDUuMzktMTcuMzMsMTIuMTYtMjIuMzdjMy45MS0yLjkxLDcuNzMtNC4yMiwxMS41Ni00LjMxYzMuODQsMC4wOSw3LjY1LDEuNCwxMS41Niw0LjMxDQoJYzMuMTIsMi4zMiw2LjEsNS40OCw4LjM0LDkuMDNjLTIuOTUsMy43OC00LjcxLDguNTMtNC43MSwxMy42OUMzMTIuNjMsNDQ0LjU4LDMxMy4xNSw0NDcuMjUsMzE0LjA5LDQ0OS43MiBNMjcxLjE1LDQwMi44Ng0KCWM0LjA0LTEuMDEsOC40LTEuNDcsMTIuMDYsMC44M2MyLjUyLDEuNTgsMy43OCw0LjM0LDQuNzMsNy4wNWwtMi44OS0wLjRDMjg1LjA2LDQxMC4zMywyNzkuMjUsNDA1LjQ0LDI3MS4xNSw0MDIuODZ6DQoJIE0zMjMuNzIsNDAyLjg2Yy00LjA0LTEuMDEtOC40LTEuNDctMTIuMDYsMC44M2MtMi41MiwxLjU4LTMuNzgsNC4zNC00LjczLDcuMDVsMi44OS0wLjQNCglDMzA5LjgxLDQxMC4zMywzMTUuNjIsNDA1LjQ0LDMyMy43Miw0MDIuODZ6IE0zNTYuMjYsNDMxLjg1Yy0wLjM1LDAuMjctMC43MSwwLjU0LTEuMDYsMC44Yy0zLjQtNy41Ni0xMC45MS0xMi44Ny0xOS42OC0xMy4xMg0KCWMtMy4xNC04LjE3LTkuMDMtMTMuMzMtOS4wMy0xMy4zM3MxNC4yMiwyLjQ1LDIxLjk1LDEwLjc5QzM1My4xMyw0MjIuMDUsMzU1LjI5LDQyNy45OCwzNTYuMjYsNDMxLjg1eiBNMjM4LjYxLDQzMS44NQ0KCWM1LjM5LDQuMTcsMTEuMDcsNi44OSwyMC41NSwxMC4zM2MtMS4wOC0yLjc3LTIuNjMtOC40Ni0xLjQ1LTE2LjQ4YzEuNzItMTEuNjUsMTAuNjctMTkuNDksMTAuNjctMTkuNDlzLTE0LjIyLDIuNDUtMjEuOTUsMTAuNzkNCglDMjQxLjc0LDQyMi4wNSwyMzkuNTgsNDI3Ljk4LDIzOC42MSw0MzEuODV6IE0zMjguNzQsMzY2LjI0bDQuOCw5LjY5YzQuMjYtMi40NSwxMi4yNC01LjcyLDIwLjQyLTYuMTljLTAuMzEsNS43LTEsMTEuMTMtMy4yOCwxNi42DQoJbDguMDcsNC40MWMtMi44OSwxLjY4LTcuNSwyLjY0LTEwLjU0LDMuNDdsOC4zLDExLjRjMCwwLDYuNDEtMTIuMzQsNi45NC0yNS44NGMwLjUzLTEzLjUsMC4zNC0yMS4wMSwwLjM0LTIxLjAxDQoJUzM0My43NSwzNTcuNzgsMzI4Ljc0LDM2Ni4yNHogTTI2Ni4xMywzNjYuMjRsLTQuOCw5LjY5Yy00LjI2LTIuNDUtMTIuMjQtNS43Mi0yMC40Mi02LjE5YzAuMzEsNS43LDEsMTEuMTMsMy4yOCwxNi42bC04LjA3LDQuNDENCgljMi44OSwxLjY4LDcuNSwyLjY0LDEwLjU0LDMuNDdsLTguMywxMS40YzAsMC02LjQxLTEyLjM0LTYuOTQtMjUuODRjLTAuNTMtMTMuNS0wLjM0LTIxLjAxLTAuMzQtMjEuMDFTMjUxLjEyLDM1Ny43OCwyNjYuMTMsMzY2LjI0DQoJeiBNMzM5LjE1LDQzMS40OWMyLjg0LDEuMTgsNS4wOSwzLjQ5LDYuMTcsNi4zOGwtNy45MywyLjU3YzAuNDgtMS4xNywwLjk5LTIuNzIsMS4yNy00LjQ2DQoJQzMzOC45Nyw0MzQuMDYsMzM5LjEsNDMyLjUzLDMzOS4xNSw0MzEuNDl6IE0zMzQuODksNDI3LjQ4YzcuOSwwLDE0LjMsNi40LDE0LjMsMTQuM2MwLDcuOS02LjQsMTQuMy0xNC4zLDE0LjMNCgljLTcuOSwwLTE0LjMtNi40LTE0LjMtMTQuM0MzMjAuNTksNDMzLjg4LDMyNi45OSw0MjcuNDgsMzM0Ljg5LDQyNy40OHogTTMzNC44OSw0MjMuNDJjMTAuMTQsMCwxOC4zNiw4LjIyLDE4LjM2LDE4LjM2DQoJcy04LjIyLDE4LjM2LTE4LjM2LDE4LjM2Yy0xMC4xNCwwLTE4LjM2LTguMjItMTguMzYtMTguMzZTMzI0Ljc1LDQyMy40MiwzMzQuODksNDIzLjQyeiBNMzQ2LjU0LDQ2MC43NWwyLjcsMi45NQ0KCWMwLDAsMC42OC0xLjA4LDEuMjQtMS40OGMwLjU2LTAuNCwxLjc3LTAuNjQsMS43Ny0wLjY0bC0yLjYyLTMuMTFDMzQ5LjYyLDQ1OC40NiwzNDguMTgsNDYwLjAzLDM0Ni41NCw0NjAuNzV6IE0zNDguODksNDY3LjQ1DQoJbDEyLjY2LDE0LjkxYzAsMCwxLjc2LDAuODQsNC42MS0xLjJjMi44NS0yLjA1LDEuNjgtMy45MywxLjY4LTMuOTNsLTEyLjE0LTE0Ljc2TDM0OC44OSw0NjcuNDV6IE0zMjcuNjEsNDQwLjMzDQoJYzAsMCwxLjAyLTIuMzEsMi44MS0zLjkyYzEuMTgtMS4wNiwyLjE4LTEuMzMsMi44NS0xLjcxYzAuNzEtMC40LDEuMTctMS40OCwwLjg0LTIuMjFjLTAuMzItMC43Mi0xLjI1LTEuMDgtMi41MS0wLjY0DQoJYy0xLjc1LDAuNi0zLjUxLDEuNTItNS4wMSwzLjY4Yy0xLjUsMi4xNi0xLjQ3LDQuNTUtMS40Nyw0LjU1TDMyNy42MSw0NDAuMzN6IE0yOTcuNDQsNDI2LjFoMi43N2MxLjcyLDAsNCwwLjE0LDQuOSwxLjkyDQoJYzAuMzYsMC43MSwwLjQ2LDEuNzItMC4wMywzLjIyYy0wLjk3LDIuOTctNS4yNyw1LjItNS4yNyw1LjJ2NC42MWgzYzAsMCwxLjIxLDAuMTksMS4wMiwxLjc0Yy0wLjE5LDEuNTYtMC45NSwxLjc4LTAuOTUsMS43OGgtNS40NQ0KCWgtNS40NWMwLDAtMC43Ni0wLjIyLTAuOTUtMS43OGMtMC4xOS0xLjU2LDEuMDItMS43NCwxLjAyLTEuNzRoM3YtNC42MWMwLDAtNC4yOS0yLjIzLTUuMjctNS4yYy0wLjQ5LTEuNS0wLjM5LTIuNTItMC4wMy0zLjIyDQoJYzAuOTEtMS43OCwzLjE4LTEuOTIsNC45LTEuOTJIMjk3LjQ0eiBNMzI2LjQ1LDQ0MS4yMWMxLjAxLDAsMS44NCwwLjgyLDEuODQsMS44NHMtMC44MiwxLjg0LTEuODQsMS44NHMtMS44NC0wLjgyLTEuODQtMS44NA0KCVMzMjUuNDQsNDQxLjIxLDMyNi40NSw0NDEuMjF6Ii8+DQo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMjc3LjExLDQxOC44N2MyLjE5LDAsMy45Ni0xLjc3LDMuOTYtMy45NmMwLTIuMTktMS43Ny0zLjk2LTMuOTYtMy45NmMtMi4xOSwwLTMuOTYsMS43Ny0zLjk2LDMuOTYNCglDMjczLjE1LDQxNy4xLDI3NC45Myw0MTguODcsMjc3LjExLDQxOC44N3ogTTI5OS44MSw0MzYuNDRjMCwwLDQuMjktMi4yMyw1LjI3LTUuMmMwLjQ5LTEuNSwwLjM5LTIuNTIsMC4wMy0zLjIyDQoJYy0wLjkxLTEuNzgtMy4xOC0xLjkyLTQuOS0xLjkyaC0yLjc3aC0yLjc3Yy0xLjcyLDAtNCwwLjE0LTQuOSwxLjkyYy0wLjM2LDAuNzEtMC40NiwxLjcyLDAuMDMsMy4yMmMwLjk3LDIuOTcsNS4yNyw1LjIsNS4yNyw1LjINCgl2NC42MWgtM2MwLDAtMS4yMSwwLjE5LTEuMDIsMS43NGMwLjE5LDEuNTYsMC45NSwxLjc4LDAuOTUsMS43OGg1LjQ1aDUuNDVjMCwwLDAuNzYtMC4yMiwwLjk1LTEuNzhjMC4xOS0xLjU2LTEuMDItMS43NC0xLjAyLTEuNzQNCgloLTNWNDM2LjQ0eiBNMzEzLjgsNDE0LjkxYzAsMi4xOSwxLjc3LDMuOTYsMy45NiwzLjk2YzIuMTksMCwzLjk2LTEuNzcsMy45Ni0zLjk2YzAtMi4xOS0xLjc3LTMuOTYtMy45Ni0zLjk2DQoJQzMxNS41Nyw0MTAuOTUsMzEzLjgsNDEyLjczLDMxMy44LDQxNC45MXoiLz4NCjxwYXRoIGNsYXNzPSJzdDUiIGQ9Ik0yNzcuMTEsNDE4Ljg3YzIuMTksMCwzLjk2LTEuNzcsMy45Ni0zLjk2YzAtMi4xOS0xLjc3LTMuOTYtMy45Ni0zLjk2Yy0yLjE5LDAtMy45NiwxLjc3LTMuOTYsMy45Ng0KCUMyNzMuMTUsNDE3LjEsMjc0LjkzLDQxOC44NywyNzcuMTEsNDE4Ljg3eiBNMjk5LjgxLDQzNi40NGMwLDAsNC4yOS0yLjIzLDUuMjctNS4yYzAuNDktMS41LDAuMzktMi41MiwwLjAzLTMuMjINCgljLTAuOTEtMS43OC0zLjE4LTEuOTItNC45LTEuOTJoLTIuNzdoLTIuNzdjLTEuNzIsMC00LDAuMTQtNC45LDEuOTJjLTAuMzYsMC43MS0wLjQ2LDEuNzIsMC4wMywzLjIyYzAuOTcsMi45Nyw1LjI3LDUuMiw1LjI3LDUuMg0KCXY0LjYxaC0zYzAsMC0xLjIxLDAuMTktMS4wMiwxLjc0YzAuMTksMS41NiwwLjk1LDEuNzgsMC45NSwxLjc4aDUuNDVoNS40NWMwLDAsMC43Ni0wLjIyLDAuOTUtMS43OGMwLjE5LTEuNTYtMS4wMi0xLjc0LTEuMDItMS43NA0KCWgtM1Y0MzYuNDR6IE0zMTMuOCw0MTQuOTFjMCwyLjE5LDEuNzcsMy45NiwzLjk2LDMuOTZjMi4xOSwwLDMuOTYtMS43NywzLjk2LTMuOTZjMC0yLjE5LTEuNzctMy45Ni0zLjk2LTMuOTYNCglDMzE1LjU3LDQxMC45NSwzMTMuOCw0MTIuNzMsMzEzLjgsNDE0LjkxeiIvPg0KPC9zdmc+DQo="
+              alt=""
+              aria-hidden="true"
+            />
+            <span class="brand-name">Promptfoo</span>
+          </div>
+          <h1 id="report-title">
+            Prompt evaluation and iteration exercise for a given task.
+          </h1>
+          <ul class="meta-list" aria-label="Report metadata">
+            <li>Exported 2026-10-06T21:50:43.629Z</li>
+            
+            <li>Evaluated 2026-10-06T21:41:04.332Z</li>
+             
+          </ul>
+        </div>
+
+        <div class="metric-grid" aria-label="Evaluation summary">
+          <article class="metric">
+            <p class="metric-label">Total Results</p>
+            <p class="metric-value">10</p>
+          </article>
+          <article class="metric pass">
+            <p class="metric-label">Pass Rate</p>
+            <p class="metric-value">90.0%</p>
+          </article>
+          <article class="metric pass">
+            <p class="metric-label">Passed</p>
+            <p class="metric-value">9</p>
+          </article>
+          <article class="metric fail">
+            <p class="metric-label">Failed</p>
+            <p class="metric-value">1</p>
+          </article>
+          <article class="metric error">
+            <p class="metric-label">Errors</p>
+            <p class="metric-value">0</p>
+          </article>
+          <article class="metric">
+            <p class="metric-label">Prompts</p>
+            <p class="metric-value">1</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="report-panel" aria-labelledby="results-heading">
+        <h2 id="results-heading" class="sr-only">Evaluation results</h2>
+        <div class="toolbar">
+          <div class="toolbar-controls">
+            <div class="control">
+              <label for="report-search">Search</label>
+              <input
+                id="report-search"
+                data-report-search
+                type="search"
+                placeholder="Search rows, outputs, or variables"
+                autocomplete="off"
+              />
+            </div>
+            <div class="control">
+              <label for="status-filter">Status</label>
+              <select id="status-filter" data-status-filter>
+                <option value="all">All results</option>
+                <option value="pass">Fully passing rows</option>
+                <option value="fail">Rows with failures</option>
+                <option value="error">Rows with errors</option>
+              </select>
+            </div>
+          </div>
+          <div class="toolbar-summary" aria-live="polite">
+            <span data-visible-count>10</span>&nbsp;of 10
+            rows shown
+          </div>
+        </div>
+
+        <div class="table-shell">
+          <table data-results-table>
+            <caption class="sr-only">
+              Promptfoo evaluation results table
+            </caption>
+            <thead>
+              <tr>
+                
+                <th scope="col">sessionId</th>
+                
+                <th scope="col">[anthropic:claude-agent-sdk] tests/prompts/prompt-to-test.md: # Role
+
+You are a TypeScript test engineer.
+
+# Tas...</th>
+                
+              </tr>
+            </thead>
+            <tbody>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="09c9bab7-26ee-453d-9a0b-8a82995ce5ad"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">09c9bab7-26ee-453d-9a0b-8a82995ce5ad</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+- **Happy paths:**
+  - `createPayment` is tested for both the succeeded and the pending outcome.
+  - `getPayment` returns what was created.
+  - `listPayments` is tested for an empty list, a full list and a status filter.
+  - `refundPayment` is tested for a full refund and for a partial refund followed by the remainder.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** every error the mock server can return is covered, each asserting both the status and the `code` on `PaymentsApiError`.
+
+| Status | Code |
+|---|---|
+| 400 | `invalid_request` (zero amount, non-integer amount) |
+| 400 | `invalid_source` |
+| 401 | `unauthorized` (once per method) |
+| 402 | `card_declined` |
+| 402 | `insufficient_funds` |
+| 404 | `payment_not_found` (get, refund, cancel) |
+| 409 | `already_refunded` |
+| 409 | `not_refundable` (pending and canceled) |
+| 409 | `not_cancelable` (succeeded and already canceled) |
+| 422 | `invalid_refund_amount` (over the remaining amount, zero, non-integer) |
+| 500 | `processing_error` |
+
+A shared `expectApiError` helper enforces the status-and-code constraint, and it also fails if a request unexpectedly resolves. The payment store is cleared after each test so tests don&#39;t depend on each other.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and then succeed. The client has no timeout, so it isn&#39;t an error response, and testing it would only slow the suite.
+
+I haven&#39;t touched `tests/log.md` or any eval artifacts. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+- **Happy paths:**
+  - `createPayment` is tested for both the succeeded and the pending outcome.
+  - `getPayment` returns what was created.
+  - `listPayments` is tested for an empty list, a full list and a status filter.
+  - `refundPayment` is tested for a full refund and for a partial refund followed by the remainder.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** every error the mock server can return is covered, each asserting both the status and the `code` on `PaymentsApiError`.
+
+| Status | Code |
+|---|---|
+| 400 | `invalid_request` (zero amount, non-integer amount) |
+| 400 | `invalid_source` |
+| 401 | `unauthorized` (once per method) |
+| 402 | `card_declined` |
+| 402 | `insufficient_funds` |
+| 404 | `payment_not_found` (get, refund, cancel) |
+| 409 | `already_refunded` |
+| 409 | `not_refundable` (pending and canceled) |
+| 409 | `not_cancelable` (succeeded and already canceled) |
+| 422 | `invalid_refund_amount` (over the remaining amount, zero, non-integer) |
+| 500 | `processing_error` |
+
+A shared `expectApiError` helper enforces the status-and-code constraint, and it also fails if a request unexpectedly resolves. The payment store is cleared after each test so tests don&#39;t depend on each other.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and then succeed. The client has no timeout, so it isn&#39;t an error response, and testing it would only slow the suite.
+
+I haven&#39;t touched `tests/log.md` or any eval artifacts.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-0-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="9efcf883-11b3-4f0c-a137-8feb2dcc9c1f"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">9efcf883-11b3-4f0c-a137-8feb2dcc9c1f</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote the tests in `src/payments.test.ts`, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on the `PaymentsApiError`. They share an `expectApiError` helper that also fails if the call doesn&#39;t reject.
+
+- **`createPayment`:**
+  - Success: a succeeded payment and a pending payment (`tok_pending`).
+  - Errors: `401 unauthorized`, `400 invalid_request` (zero, negative, fractional amount, missing currency, missing source), `400 invalid_source`, `402 card_declined`, `402 insufficient_funds` and `500 processing_error`.
+  - I also check that a failed create stores nothing.
+- **`getPayment`:** retrieval, `401 unauthorized`, `404 payment_not_found`, and a check that an id with a slash and a space is URL-encoded.
+- **`listPayments`:** empty list, all payments, filtering by status, and `401 unauthorized`.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, and a refund completed across several partial refunds.
+  - Errors: `401 unauthorized`, `404 payment_not_found`, `409 already_refunded`, `409 not_refundable` (pending and canceled payments), and `422 invalid_refund_amount` (zero, negative, fractional, over the amount, over the remaining balance).
+- **`cancelPayment`:** cancelling a pending payment, `401 unauthorized`, `404 payment_not_found`, and `409 not_cancelable` (succeeded and already canceled payments).
+
+I left out `tok_timeout`. The mock delays 10 seconds, and `PaymentsClient` has no timeout or abort option, so there is no client behavior to assert. It would only make the suite slower.
+
+The tests reset the mock&#39;s payment store before each test, and the server is set to fail on any unhandled request. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote the tests in `src/payments.test.ts`, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on the `PaymentsApiError`. They share an `expectApiError` helper that also fails if the call doesn&#39;t reject.
+
+- **`createPayment`:**
+  - Success: a succeeded payment and a pending payment (`tok_pending`).
+  - Errors: `401 unauthorized`, `400 invalid_request` (zero, negative, fractional amount, missing currency, missing source), `400 invalid_source`, `402 card_declined`, `402 insufficient_funds` and `500 processing_error`.
+  - I also check that a failed create stores nothing.
+- **`getPayment`:** retrieval, `401 unauthorized`, `404 payment_not_found`, and a check that an id with a slash and a space is URL-encoded.
+- **`listPayments`:** empty list, all payments, filtering by status, and `401 unauthorized`.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, and a refund completed across several partial refunds.
+  - Errors: `401 unauthorized`, `404 payment_not_found`, `409 already_refunded`, `409 not_refundable` (pending and canceled payments), and `422 invalid_refund_amount` (zero, negative, fractional, over the amount, over the remaining balance).
+- **`cancelPayment`:** cancelling a pending payment, `401 unauthorized`, `404 payment_not_found`, and `409 not_cancelable` (succeeded and already canceled payments).
+
+I left out `tok_timeout`. The mock delays 10 seconds, and `PaymentsClient` has no timeout or abort option, so there is no client behavior to assert. It would only make the suite slower.
+
+The tests reset the mock&#39;s payment store before each test, and the server is set to fail on any unhandled request.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-1-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="1f472344-7200-4ef6-a036-45b56a8a8d5b"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">1f472344-7200-4ef6-a036-45b56a8a8d5b</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote 36 tests in `src/payments.test.ts`. They all pass with `bun test`, and the file is now formatted with oxfmt and clean under oxlint. oxfmt rewrote the file after I wrote it, so the file on disk is the formatted version.
+
+**Coverage**
+- **Happy paths:** every method is covered. `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending). `refundPayment` covers a full refund, a partial refund, and two partial refunds that add up to a full one. `listPayments` is tested with no filter and with a status filter. `cancelPayment` cancels a pending payment.
+- **Error responses:** each test checks both the status and the code on the `PaymentsApiError`, through a shared `expectApiError` helper. The codes covered are `card_declined`, `insufficient_funds`, `processing_error`, `invalid_source`, `invalid_request`, `unauthorized`, `payment_not_found`, `already_refunded`, `not_refundable`, `invalid_refund_amount` and `not_cancelable`.
+
+**What I did differently**
+- I left out the `tok_timeout` source. The mock holds that request for 10 seconds, and the client has no timeout or abort option. It also isn&#39;t an error response, so a test would only slow the suite down.
+- I reset the mock&#39;s payment store in `beforeEach`, so tests don&#39;t affect each other.
+- I set `onUnhandledRequest: &quot;error&quot;`, so a request that misses the mock fails the test. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote 36 tests in `src/payments.test.ts`. They all pass with `bun test`, and the file is now formatted with oxfmt and clean under oxlint. oxfmt rewrote the file after I wrote it, so the file on disk is the formatted version.
+
+**Coverage**
+- **Happy paths:** every method is covered. `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending). `refundPayment` covers a full refund, a partial refund, and two partial refunds that add up to a full one. `listPayments` is tested with no filter and with a status filter. `cancelPayment` cancels a pending payment.
+- **Error responses:** each test checks both the status and the code on the `PaymentsApiError`, through a shared `expectApiError` helper. The codes covered are `card_declined`, `insufficient_funds`, `processing_error`, `invalid_source`, `invalid_request`, `unauthorized`, `payment_not_found`, `already_refunded`, `not_refundable`, `invalid_refund_amount` and `not_cancelable`.
+
+**What I did differently**
+- I left out the `tok_timeout` source. The mock holds that request for 10 seconds, and the client has no timeout or abort option. It also isn&#39;t an error response, so a test would only slow the suite down.
+- I reset the mock&#39;s payment store in `beforeEach`, so tests don&#39;t affect each other.
+- I set `onUnhandledRequest: &quot;error&quot;`, so a request that misses the mock fails the test.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-2-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="ac9e9e9a-b3c4-4169-972b-8c3f017c31f1"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">ac9e9e9a-b3c4-4169-972b-8c3f017c31f1</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 43 tests, and all of them pass under `bun test`.
+
+- **Happy paths:** every method is covered (`createPayment`, `getPayment`, `listPayments`, `refundPayment`, `cancelPayment`). That includes pending versus succeeded creation, status filtering, full, partial and multi-step refunds, and cancel.
+- **Error responses:** each test uses a helper that asserts the error is a `PaymentsApiError` and checks both `status` and `code`. Together they cover all 10 error codes the mock server returns:
+  - `unauthorized` (401), on every method.
+  - `invalid_request` and `invalid_source` (400).
+  - `card_declined` and `insufficient_funds` (402).
+  - `processing_error` (500).
+  - `payment_not_found` (404).
+  - `already_refunded`, `not_refundable` and `not_cancelable` (409).
+  - `invalid_refund_amount` (422).
+- **Isolation:** the stored payments are reset before each test, and unhandled requests fail the test.
+
+I left out the `tok_timeout` source. It only delays the response by 10 seconds and returns no error, and `PaymentsClient` has no timeout or abort option to test against.
+
+I only ran the new test file, not the full suite. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 43 tests, and all of them pass under `bun test`.
+
+- **Happy paths:** every method is covered (`createPayment`, `getPayment`, `listPayments`, `refundPayment`, `cancelPayment`). That includes pending versus succeeded creation, status filtering, full, partial and multi-step refunds, and cancel.
+- **Error responses:** each test uses a helper that asserts the error is a `PaymentsApiError` and checks both `status` and `code`. Together they cover all 10 error codes the mock server returns:
+  - `unauthorized` (401), on every method.
+  - `invalid_request` and `invalid_source` (400).
+  - `card_declined` and `insufficient_funds` (402).
+  - `processing_error` (500).
+  - `payment_not_found` (404).
+  - `already_refunded`, `not_refundable` and `not_cancelable` (409).
+  - `invalid_refund_amount` (422).
+- **Isolation:** the stored payments are reset before each test, and unhandled requests fail the test.
+
+I left out the `tok_timeout` source. It only delays the response by 10 seconds and returns no error, and `PaymentsClient` has no timeout or abort option to test against.
+
+I only ran the new test file, not the full suite.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-3-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="15318656-9d4a-4f20-adf6-6d34c5b728b4"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">15318656-9d4a-4f20-adf6-6d34c5b728b4</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts`, and all 40 tests pass with `bun test src/payments.test.ts`.
+
+The tests use MSW and clear the mock store before each test. Every method has a happy path and error tests.
+
+- **`createPayment`:**
+  - Happy paths: `tok_visa` gives a succeeded payment, and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for amounts of 0, -5 and 10.5.
+- **`getPayment`:** returns a created payment, and an unknown or special-character id gives 404 `payment_not_found`.
+- **`listPayments`:** covers the empty list, the unfiltered list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Happy paths: full refund, partial refund, and refunding the remainder after a partial refund.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (above the total, above the remaining balance, and amounts of 0, -1 and 1.5).
+- **`cancelPayment`:** cancels a pending payment, and an unknown id gives 404. Canceling a succeeded or already canceled payment gives 409 `not_cancelable`.
+- **Bad API key:** every method returns 401 `unauthorized`.
+
+Every error test goes through one helper that asserts the error is a `PaymentsApiError`, then checks both `status` and `code`.
+
+I did not test `tok_timeout`. The mock delays that source by 10 seconds and the client has no timeout or abort option, so a test would only wait out the delay without exercising any client behavior. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts`, and all 40 tests pass with `bun test src/payments.test.ts`.
+
+The tests use MSW and clear the mock store before each test. Every method has a happy path and error tests.
+
+- **`createPayment`:**
+  - Happy paths: `tok_visa` gives a succeeded payment, and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for amounts of 0, -5 and 10.5.
+- **`getPayment`:** returns a created payment, and an unknown or special-character id gives 404 `payment_not_found`.
+- **`listPayments`:** covers the empty list, the unfiltered list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Happy paths: full refund, partial refund, and refunding the remainder after a partial refund.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (above the total, above the remaining balance, and amounts of 0, -1 and 1.5).
+- **`cancelPayment`:** cancels a pending payment, and an unknown id gives 404. Canceling a succeeded or already canceled payment gives 409 `not_cancelable`.
+- **Bad API key:** every method returns 401 `unauthorized`.
+
+Every error test goes through one helper that asserts the error is a `PaymentsApiError`, then checks both `status` and `code`.
+
+I did not test `tok_timeout`. The mock delays that source by 10 seconds and the client has no timeout or abort option, so a test would only wait out the delay without exercising any client behavior.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-4-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="bd9651d1-00f1-49fe-b664-dc1be12e8931"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">bd9651d1-00f1-49fe-b664-dc1be12e8931</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="fail"
+                  data-search="FAIL 0.94 I wrote `src/payments.test.ts` with 38 tests, and `bun test src/payments.test.ts` passes all 38.
+
+- **Happy paths:** every method is covered. `createPayment` covers `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` and `listPayments` cover unfiltered and status-filtered results. `refundPayment` covers full, partial, and refunding the remainder. `cancelPayment` covers canceling a pending payment.
+- **Error responses:** every error code the mock server can return is covered.
+  - 400: `invalid_request` and `invalid_source`
+  - 401: `unauthorized`
+  - 402: `card_declined` and `insufficient_funds`
+  - 404: `payment_not_found`
+  - 409: `already_refunded`, `not_refundable` and `not_cancelable`
+  - 422: `invalid_refund_amount`
+  - 500: `processing_error`
+- **Constraint:** every error test goes through one helper, `expectApiError`. It checks the error is a `PaymentsApiError` and asserts both `status` and `code`.
+- **Isolation:** payments are reset in `beforeEach` with `resetPayments()`, and unhandled requests fail the test.
+- **Not covered:** the `tok_timeout` source. The mock waits 10 seconds and then succeeds, and `PaymentsClient` has no timeout or abort option, so there is no error response to assert. I read payments.test.ts. It has 38 tests: 11 for createPayment, 3 for getPayment, 5 for listPayments, 13 for refundPayment and 6 for cancelPayment. Criterion (a) holds. Every success-path test asserts concrete values. They check the pay_ id prefix, status, amount, currency, source, amountRefunded and createdAt. The list tests check exact ids, lengths and empty arrays, and the getPayment test uses toEqual against the created payment. Criterion (b) holds for 37 of the 38 tests. Those tests all go through expectApiError, which checks toBeInstanceOf(PaymentsApiError) and asserts both status and code. It fails for one test. &#39;carries the server message on the error&#39; (createPayment) is a failure-path test, but it only checks error.name and error.message. It does not assert status or code, and it casts to PaymentsApiError without an instanceof check. That makes (b) not literally true for every failure-path test, so the score is not 1.0. The gap is a single supplementary test, and its assertions are concrete rather than existence checks. No test is trivial or only checks that something threw. The weakest test is &#39;carries the server message on the error&#39;. Weakest success-path test: &#39;creates a pending payment for tok_pending&#39;, which asserts only status. I read payments.test.ts. It has 38 tests: 11 for createPayment, 3 for getPayment, 5 for listPayments, 13 for refundPayment and 6 for cancelPayment. Criterion (a) holds. Every success-path test asserts concrete values. They check the pay_ id prefix, status, amount, currency, source, amountRefunded and createdAt. The list tests check exact ids, lengths and empty arrays, and the getPayment test uses toEqual against the created payment. Criterion (b) holds for 37 of the 38 tests. Those tests all go through expectApiError, which checks toBeInstanceOf(PaymentsApiError) and asserts both status and code. It fails for one test. &#39;carries the server message on the error&#39; (createPayment) is a failure-path test, but it only checks error.name and error.message. It does not assert status or code, and it casts to PaymentsApiError without an instanceof check. That makes (b) not literally true for every failure-path test, so the score is not 1.0. The gap is a single supplementary test, and its assertions are concrete rather than existence checks. No test is trivial or only checks that something threw. The weakest test is &#39;carries the server message on the error&#39;. Weakest success-path test: &#39;creates a pending payment for tok_pending&#39;, which asserts only status."
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill fail"
+                        >FAIL</span
+                      >
+                      <span class="score-pill">Score 0.94</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 0.50</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 38 tests, and `bun test src/payments.test.ts` passes all 38.
+
+- **Happy paths:** every method is covered. `createPayment` covers `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` and `listPayments` cover unfiltered and status-filtered results. `refundPayment` covers full, partial, and refunding the remainder. `cancelPayment` covers canceling a pending payment.
+- **Error responses:** every error code the mock server can return is covered.
+  - 400: `invalid_request` and `invalid_source`
+  - 401: `unauthorized`
+  - 402: `card_declined` and `insufficient_funds`
+  - 404: `payment_not_found`
+  - 409: `already_refunded`, `not_refundable` and `not_cancelable`
+  - 422: `invalid_refund_amount`
+  - 500: `processing_error`
+- **Constraint:** every error test goes through one helper, `expectApiError`. It checks the error is a `PaymentsApiError` and asserts both `status` and `code`.
+- **Isolation:** payments are reset in `beforeEach` with `resetPayments()`, and unhandled requests fail the test.
+- **Not covered:** the `tok_timeout` source. The mock waits 10 seconds and then succeeds, and `PaymentsClient` has no timeout or abort option, so there is no error response to assert.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">I read payments.test.ts. It has 38 tests: 11 for createPayment, 3 for getPayment, 5 for listPayments, 13 for refundPayment and 6 for cancelPayment. Criterion (a) holds. Every success-path test asserts concrete values. They check the pay_ id prefix, status, amount, currency, source, amountRefunded and createdAt. The list tests check exact ids, lengths and empty arrays, and the getPayment test uses toEqual against the created payment. Criterion (b) holds for 37 of the 38 tests. Those tests all go through expectApiError, which checks toBeInstanceOf(PaymentsApiError) and asserts both status and code. It fails for one test. &#39;carries the server message on the error&#39; (createPayment) is a failure-path test, but it only checks error.name and error.message. It does not assert status or code, and it casts to PaymentsApiError without an instanceof check. That makes (b) not literally true for every failure-path test, so the score is not 1.0. The gap is a single supplementary test, and its assertions are concrete rather than existence checks. No test is trivial or only checks that something threw. The weakest test is &#39;carries the server message on the error&#39;. Weakest success-path test: &#39;creates a pending payment for tok_pending&#39;, which asserts only status.</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-5-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="834468d5-71e4-4c59-8264-7be4a10462f9"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">834468d5-71e4-4c59-8264-7be4a10462f9</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 39 tests, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on a `PaymentsApiError`. A shared `expectApiError` helper does this. It also fails the test if the call doesn&#39;t reject, or if the thrown error isn&#39;t a `PaymentsApiError`.
+
+- **`createPayment`:**
+  - Success: `tok_visa` gives a succeeded payment and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for zero, negative and non-integer amounts.
+- **`getPayment`:**
+  - Success: it returns the created payment.
+  - Errors: 404 `payment_not_found`.
+- **`listPayments`:**
+  - Success: empty list, full list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, completing a partial refund with a second one, and the refund showing up in `getPayment`.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (over the balance, over the remaining balance after a partial refund, zero, negative, non-integer).
+- **`cancelPayment`:**
+  - Success: it cancels a pending payment, and the cancellation shows up in `getPayment`.
+  - Errors: 404 `payment_not_found` and 409 `not_cancelable` (succeeded, already canceled, refunded).
+- **401 `unauthorized`:** tested for all five methods, using a client with a wrong API key.
+
+I did not test `tok_timeout`. The mock delays that request by 10 seconds and `PaymentsClient` has no timeout option, so there is no client behavior to assert. The tests also reset the mock&#39;s stored payments before each test, so they don&#39;t depend on each other. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 39 tests, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on a `PaymentsApiError`. A shared `expectApiError` helper does this. It also fails the test if the call doesn&#39;t reject, or if the thrown error isn&#39;t a `PaymentsApiError`.
+
+- **`createPayment`:**
+  - Success: `tok_visa` gives a succeeded payment and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for zero, negative and non-integer amounts.
+- **`getPayment`:**
+  - Success: it returns the created payment.
+  - Errors: 404 `payment_not_found`.
+- **`listPayments`:**
+  - Success: empty list, full list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, completing a partial refund with a second one, and the refund showing up in `getPayment`.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (over the balance, over the remaining balance after a partial refund, zero, negative, non-integer).
+- **`cancelPayment`:**
+  - Success: it cancels a pending payment, and the cancellation shows up in `getPayment`.
+  - Errors: 404 `payment_not_found` and 409 `not_cancelable` (succeeded, already canceled, refunded).
+- **401 `unauthorized`:** tested for all five methods, using a client with a wrong API key.
+
+I did not test `tok_timeout`. The mock delays that request by 10 seconds and `PaymentsClient` has no timeout option, so there is no client behavior to assert. The tests also reset the mock&#39;s stored payments before each test, so they don&#39;t depend on each other.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-6-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="7744f532-10ae-4d92-8cce-26ccc8d89206"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">7744f532-10ae-4d92-8cce-26ccc8d89206</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 34 tests, and all 34 pass under `bun test`.
+
+**Happy paths**
+- `createPayment` is covered for both `tok_visa` (succeeded) and `tok_pending` (pending).
+- `getPayment` returns a payment that was just created.
+- `listPayments` is covered with no filter, with a status filter, and with an empty result.
+- `refundPayment` is covered for a full refund, a partial refund, and refunding the remainder after a partial one.
+- `cancelPayment` cancels a pending payment.
+
+**Error responses**
+Every error test goes through an `expectApiError` helper. It asserts the thrown error is a `PaymentsApiError` and checks both `status` and `code`.
+- 401 `unauthorized` is tested on all five methods.
+- 400 `invalid_request` is tested for a zero amount and a non-integer amount.
+- 400 `invalid_source` is tested for an unknown source token.
+- 402 `card_declined` and 402 `insufficient_funds` are tested on create.
+- 500 `processing_error` is tested on create.
+- 404 `payment_not_found` is tested on get, refund and cancel.
+- 409 `already_refunded` and 409 `not_refundable` are tested on refund. The `not_refundable` case runs against both a pending and a canceled payment.
+- 409 `not_cancelable` is tested on cancel, for a succeeded payment and an already canceled one.
+- 422 `invalid_refund_amount` is tested for an amount over the balance, zero, a non-integer, and an amount over what remains after a partial refund.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and returns no error response. `PaymentsClient` also has no timeout, so a test would only be checking `fetch`. It would also go past Bun&#39;s 5-second default test limit.
+
+Isolation: the server runs with `onUnhandledRequest: &quot;error&quot;`, and `resetPayments()` runs after each test.
+
+Per your eval workflow, I haven&#39;t run `promptfoo eval` or touched the logs or versioned artifacts. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 34 tests, and all 34 pass under `bun test`.
+
+**Happy paths**
+- `createPayment` is covered for both `tok_visa` (succeeded) and `tok_pending` (pending).
+- `getPayment` returns a payment that was just created.
+- `listPayments` is covered with no filter, with a status filter, and with an empty result.
+- `refundPayment` is covered for a full refund, a partial refund, and refunding the remainder after a partial one.
+- `cancelPayment` cancels a pending payment.
+
+**Error responses**
+Every error test goes through an `expectApiError` helper. It asserts the thrown error is a `PaymentsApiError` and checks both `status` and `code`.
+- 401 `unauthorized` is tested on all five methods.
+- 400 `invalid_request` is tested for a zero amount and a non-integer amount.
+- 400 `invalid_source` is tested for an unknown source token.
+- 402 `card_declined` and 402 `insufficient_funds` are tested on create.
+- 500 `processing_error` is tested on create.
+- 404 `payment_not_found` is tested on get, refund and cancel.
+- 409 `already_refunded` and 409 `not_refundable` are tested on refund. The `not_refundable` case runs against both a pending and a canceled payment.
+- 409 `not_cancelable` is tested on cancel, for a succeeded payment and an already canceled one.
+- 422 `invalid_refund_amount` is tested for an amount over the balance, zero, a non-integer, and an amount over what remains after a partial refund.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and returns no error response. `PaymentsClient` also has no timeout, so a test would only be checking `fetch`. It would also go past Bun&#39;s 5-second default test limit.
+
+Isolation: the server runs with `onUnhandledRequest: &quot;error&quot;`, and `resetPayments()` runs after each test.
+
+Per your eval workflow, I haven&#39;t run `promptfoo eval` or touched the logs or versioned artifacts.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-7-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="9ad467cf-d9a5-4a28-a614-a7ee55f6d1d8"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">9ad467cf-d9a5-4a28-a614-a7ee55f6d1d8</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 34 tests, and `bun test src/payments.test.ts` passes all of them.
+
+- **Happy paths:** every method has one.
+  - `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending).
+  - `getPayment` returns the stored payment.
+  - `listPayments` covers empty, all, and status-filtered results.
+  - `refundPayment` covers full, partial, and completing a refund after a partial one.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** each error test goes through one helper, `expectApiError`. It asserts the rejection is a `PaymentsApiError` and checks both `status` and `code`.
+  - **401:** `unauthorized`, checked on all five methods using a client with a bad key.
+  - **400:** `invalid_request` for a zero amount, a non-integer amount, and a missing currency, plus `invalid_source` for an unknown token.
+  - **402:** `card_declined` and `insufficient_funds`.
+  - **500:** `processing_error`.
+  - **404:** `payment_not_found` on get, refund, and cancel.
+  - **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already canceled payments).
+  - **422:** `invalid_refund_amount` for an amount over the payment, an amount over the remaining balance, a zero amount, and a non-integer amount.
+- **Not covered:** the `tok_timeout` source. It only delays the response by 10 seconds and returns no error response.
+- **State:** `resetPayments()` runs in `beforeEach`, so the in-memory store doesn&#39;t leak between tests. The server is set to `onUnhandledRequest: &quot;error&quot;`, so a request that doesn&#39;t match any handler fails the test. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 34 tests, and `bun test src/payments.test.ts` passes all of them.
+
+- **Happy paths:** every method has one.
+  - `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending).
+  - `getPayment` returns the stored payment.
+  - `listPayments` covers empty, all, and status-filtered results.
+  - `refundPayment` covers full, partial, and completing a refund after a partial one.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** each error test goes through one helper, `expectApiError`. It asserts the rejection is a `PaymentsApiError` and checks both `status` and `code`.
+  - **401:** `unauthorized`, checked on all five methods using a client with a bad key.
+  - **400:** `invalid_request` for a zero amount, a non-integer amount, and a missing currency, plus `invalid_source` for an unknown token.
+  - **402:** `card_declined` and `insufficient_funds`.
+  - **500:** `processing_error`.
+  - **404:** `payment_not_found` on get, refund, and cancel.
+  - **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already canceled payments).
+  - **422:** `invalid_refund_amount` for an amount over the payment, an amount over the remaining balance, a zero amount, and a non-integer amount.
+- **Not covered:** the `tok_timeout` source. It only delays the response by 10 seconds and returns no error response.
+- **State:** `resetPayments()` runs in `beforeEach`, so the in-memory store doesn&#39;t leak between tests. The server is set to `onUnhandledRequest: &quot;error&quot;`, so a request that doesn&#39;t match any handler fails the test.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-8-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+              <tr data-result-row>
+                 
+                <td
+                  data-search="12cf1f47-424c-450e-a629-860836a13f7f"
+                  data-variable-name="sessionId"
+                >
+                  <div class="cell-content variable-text">12cf1f47-424c-450e-a629-860836a13f7f</div>
+                </td>
+                  
+                <td
+                  data-output-cell="true"
+                  data-status="pass"
+                  data-search="PASS 1.00 I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+**Happy paths:** every method is covered. `createPayment` has `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` returns the stored payment. `listPayments` covers empty, all, and status-filtered results. `refundPayment` covers a full refund and a partial refund followed by the remainder. `cancelPayment` cancels a pending payment.
+
+**Error responses:** every error test goes through an `expectApiError` helper. It asserts that the error is a `PaymentsApiError` and that both `status` and `code` match.
+- **400:** `invalid_request` (zero, negative and non-integer amounts, and a missing field) and `invalid_source`.
+- **401:** `unauthorized` on all five methods, using a client with a wrong key.
+- **402:** `card_declined` and `insufficient_funds`.
+- **404:** `payment_not_found` on get, refund and cancel.
+- **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already-canceled payments).
+- **422:** `invalid_refund_amount` (above the balance, zero or negative, and above what remains after a partial refund).
+- **500:** `processing_error`.
+
+I didn&#39;t test `tok_timeout`. The mock delays that response by 10 seconds and the client has no abort signal or timeout option. A test would have to wait past Bun&#39;s 5-second default and could only fail. If you want it covered, `PaymentsClient` needs a timeout option first.
+
+I reset the mock&#39;s payment store in `beforeEach` so the tests don&#39;t affect each other. All assertions passed "
+                >
+                  <div class="cell-content output-cell">
+                    <div class="output-meta">
+                      <span class="status-pill pass"
+                        >PASS</span
+                      >
+                      <span class="score-pill">Score 1.00</span>
+                      
+                      <span class="named-score-pill"
+                        >tests_pass 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >method_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >error_coverage 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >project_conventions 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >scope_discipline 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >mutation_score 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >assertion_quality 1.00</span
+                      >
+                      
+                      <span class="named-score-pill"
+                        >isolation_determinism 1.00</span
+                      >
+                      
+                    </div>
+                    <div class="output-section">
+                      <span class="output-section-label">Output</span>
+                      <div class="output-text">I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+**Happy paths:** every method is covered. `createPayment` has `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` returns the stored payment. `listPayments` covers empty, all, and status-filtered results. `refundPayment` covers a full refund and a partial refund followed by the remainder. `cancelPayment` cancels a pending payment.
+
+**Error responses:** every error test goes through an `expectApiError` helper. It asserts that the error is a `PaymentsApiError` and that both `status` and `code` match.
+- **400:** `invalid_request` (zero, negative and non-integer amounts, and a missing field) and `invalid_source`.
+- **401:** `unauthorized` on all five methods, using a client with a wrong key.
+- **402:** `card_declined` and `insufficient_funds`.
+- **404:** `payment_not_found` on get, refund and cancel.
+- **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already-canceled payments).
+- **422:** `invalid_refund_amount` (above the balance, zero or negative, and above what remains after a partial refund).
+- **500:** `processing_error`.
+
+I didn&#39;t test `tok_timeout`. The mock delays that response by 10 seconds and the client has no abort signal or timeout option. A test would have to wait past Bun&#39;s 5-second default and could only fail. If you want it covered, `PaymentsClient` needs a timeout option first.
+
+I reset the mock&#39;s payment store in `beforeEach` so the tests don&#39;t affect each other.</div>
+                    </div>
+                    
+                    <div class="output-section">
+                      <span class="output-section-label">Reason</span>
+                      <p class="output-reason">All assertions passed</p>
+                    </div>
+                    
+                    <div>
+                      <button
+                        type="button"
+                        class="detail-button"
+                        data-open-detail
+                        data-detail-target="result-detail-9-0"
+                      >
+                        View detail
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                 
+              </tr>
+              
+            </tbody>
+          </table>
+        </div>
+        <p class="empty-state" data-empty-state>
+          No rows match the current search and status filters.
+        </p>
+      </section>
+    </main>
+
+    <div class="detail-backdrop" data-detail-backdrop hidden></div>
+    <aside
+      class="detail-drawer"
+      data-detail-drawer
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detail-drawer-title"
+      hidden
+    >
+      <header class="detail-header">
+        <div class="detail-heading">
+          <h2 class="detail-title" id="detail-drawer-title" data-detail-title>Result detail</h2>
+        </div>
+        <button
+          type="button"
+          class="detail-close"
+          data-detail-close
+          aria-label="Close result detail"
+        >
+          <span class="detail-close-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="detail-body" data-detail-body></div>
+    </aside>
+
+        
+    <template
+      id="result-detail-0-0"
+      data-detail-heading="Result detail - row 1, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">33658 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.130109</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">101,755</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+- **Happy paths:**
+  - `createPayment` is tested for both the succeeded and the pending outcome.
+  - `getPayment` returns what was created.
+  - `listPayments` is tested for an empty list, a full list and a status filter.
+  - `refundPayment` is tested for a full refund and for a partial refund followed by the remainder.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** every error the mock server can return is covered, each asserting both the status and the `code` on `PaymentsApiError`.
+
+| Status | Code |
+|---|---|
+| 400 | `invalid_request` (zero amount, non-integer amount) |
+| 400 | `invalid_source` |
+| 401 | `unauthorized` (once per method) |
+| 402 | `card_declined` |
+| 402 | `insufficient_funds` |
+| 404 | `payment_not_found` (get, refund, cancel) |
+| 409 | `already_refunded` |
+| 409 | `not_refundable` (pending and canceled) |
+| 409 | `not_cancelable` (succeeded and already canceled) |
+| 422 | `invalid_refund_amount` (over the remaining amount, zero, non-integer) |
+| 500 | `processing_error` |
+
+A shared `expectApiError` helper enforces the status-and-code constraint, and it also fails if a request unexpectedly resolves. The payment store is cleared after each test so tests don&#39;t depend on each other.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and then succeed. The client has no timeout, so it isn&#39;t an error response, and testing it would only slow the suite.
+
+I haven&#39;t touched `tests/log.md` or any eval artifacts.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">97,027</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">4,728</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-1-0"
+      data-detail-heading="Result detail - row 2, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">34033 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.116140</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">84,380</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote the tests in `src/payments.test.ts`, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on the `PaymentsApiError`. They share an `expectApiError` helper that also fails if the call doesn&#39;t reject.
+
+- **`createPayment`:**
+  - Success: a succeeded payment and a pending payment (`tok_pending`).
+  - Errors: `401 unauthorized`, `400 invalid_request` (zero, negative, fractional amount, missing currency, missing source), `400 invalid_source`, `402 card_declined`, `402 insufficient_funds` and `500 processing_error`.
+  - I also check that a failed create stores nothing.
+- **`getPayment`:** retrieval, `401 unauthorized`, `404 payment_not_found`, and a check that an id with a slash and a space is URL-encoded.
+- **`listPayments`:** empty list, all payments, filtering by status, and `401 unauthorized`.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, and a refund completed across several partial refunds.
+  - Errors: `401 unauthorized`, `404 payment_not_found`, `409 already_refunded`, `409 not_refundable` (pending and canceled payments), and `422 invalid_refund_amount` (zero, negative, fractional, over the amount, over the remaining balance).
+- **`cancelPayment`:** cancelling a pending payment, `401 unauthorized`, `404 payment_not_found`, and `409 not_cancelable` (succeeded and already canceled payments).
+
+I left out `tok_timeout`. The mock delays 10 seconds, and `PaymentsClient` has no timeout or abort option, so there is no client behavior to assert. It would only make the suite slower.
+
+The tests reset the mock&#39;s payment store before each test, and the server is set to fail on any unhandled request.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">79,101</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,279</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-2-0"
+      data-detail-heading="Result detail - row 3, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">36754 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.123180</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">124,964</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote 36 tests in `src/payments.test.ts`. They all pass with `bun test`, and the file is now formatted with oxfmt and clean under oxlint. oxfmt rewrote the file after I wrote it, so the file on disk is the formatted version.
+
+**Coverage**
+- **Happy paths:** every method is covered. `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending). `refundPayment` covers a full refund, a partial refund, and two partial refunds that add up to a full one. `listPayments` is tested with no filter and with a status filter. `cancelPayment` cancels a pending payment.
+- **Error responses:** each test checks both the status and the code on the `PaymentsApiError`, through a shared `expectApiError` helper. The codes covered are `card_declined`, `insufficient_funds`, `processing_error`, `invalid_source`, `invalid_request`, `unauthorized`, `payment_not_found`, `already_refunded`, `not_refundable`, `invalid_refund_amount` and `not_cancelable`.
+
+**What I did differently**
+- I left out the `tok_timeout` source. The mock holds that request for 10 seconds, and the client has no timeout or abort option. It also isn&#39;t an error response, so a test would only slow the suite down.
+- I reset the mock&#39;s payment store in `beforeEach`, so tests don&#39;t affect each other.
+- I set `onUnhandledRequest: &quot;error&quot;`, so a request that misses the mock fails the test.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">119,914</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,050</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-3-0"
+      data-detail-heading="Result detail - row 4, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">40755 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.139774</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">112,214</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 43 tests, and all of them pass under `bun test`.
+
+- **Happy paths:** every method is covered (`createPayment`, `getPayment`, `listPayments`, `refundPayment`, `cancelPayment`). That includes pending versus succeeded creation, status filtering, full, partial and multi-step refunds, and cancel.
+- **Error responses:** each test uses a helper that asserts the error is a `PaymentsApiError` and checks both `status` and `code`. Together they cover all 10 error codes the mock server returns:
+  - `unauthorized` (401), on every method.
+  - `invalid_request` and `invalid_source` (400).
+  - `card_declined` and `insufficient_funds` (402).
+  - `processing_error` (500).
+  - `payment_not_found` (404).
+  - `already_refunded`, `not_refundable` and `not_cancelable` (409).
+  - `invalid_refund_amount` (422).
+- **Isolation:** the stored payments are reset before each test, and unhandled requests fail the test.
+
+I left out the `tok_timeout` source. It only delays the response by 10 seconds and returns no error, and `PaymentsClient` has no timeout or abort option to test against.
+
+I only ran the new test file, not the full suite.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">105,879</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">6,335</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-4-0"
+      data-detail-heading="Result detail - row 5, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">33948 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.116246</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">70,829</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts`, and all 40 tests pass with `bun test src/payments.test.ts`.
+
+The tests use MSW and clear the mock store before each test. Every method has a happy path and error tests.
+
+- **`createPayment`:**
+  - Happy paths: `tok_visa` gives a succeeded payment, and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for amounts of 0, -5 and 10.5.
+- **`getPayment`:** returns a created payment, and an unknown or special-character id gives 404 `payment_not_found`.
+- **`listPayments`:** covers the empty list, the unfiltered list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Happy paths: full refund, partial refund, and refunding the remainder after a partial refund.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (above the total, above the remaining balance, and amounts of 0, -1 and 1.5).
+- **`cancelPayment`:** cancels a pending payment, and an unknown id gives 404. Canceling a succeeded or already canceled payment gives 409 `not_cancelable`.
+- **Bad API key:** every method returns 401 `unauthorized`.
+
+Every error test goes through one helper that asserts the error is a `PaymentsApiError`, then checks both `status` and `code`.
+
+I did not test `tok_timeout`. The mock delays that source by 10 seconds and the client has no timeout or abort option, so a test would only wait out the delay without exercising any client behavior.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">65,468</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,361</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-5-0"
+      data-detail-heading="Result detail - row 6, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill fail"
+            >FAIL</span
+          >
+          <span class="score-pill">Score 0.94</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 0.50</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">35808 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.126576</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">108,406</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 38 tests, and `bun test src/payments.test.ts` passes all 38.
+
+- **Happy paths:** every method is covered. `createPayment` covers `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` and `listPayments` cover unfiltered and status-filtered results. `refundPayment` covers full, partial, and refunding the remainder. `cancelPayment` covers canceling a pending payment.
+- **Error responses:** every error code the mock server can return is covered.
+  - 400: `invalid_request` and `invalid_source`
+  - 401: `unauthorized`
+  - 402: `card_declined` and `insufficient_funds`
+  - 404: `payment_not_found`
+  - 409: `already_refunded`, `not_refundable` and `not_cancelable`
+  - 422: `invalid_refund_amount`
+  - 500: `processing_error`
+- **Constraint:** every error test goes through one helper, `expectApiError`. It checks the error is a `PaymentsApiError` and asserts both `status` and `code`.
+- **Isolation:** payments are reset in `beforeEach` with `resetPayments()`, and unhandled requests fail the test.
+- **Not covered:** the `tok_timeout` source. The mock waits 10 seconds and then succeeds, and `PaymentsClient` has no timeout or abort option, so there is no error response to assert.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">I read payments.test.ts. It has 38 tests: 11 for createPayment, 3 for getPayment, 5 for listPayments, 13 for refundPayment and 6 for cancelPayment. Criterion (a) holds. Every success-path test asserts concrete values. They check the pay_ id prefix, status, amount, currency, source, amountRefunded and createdAt. The list tests check exact ids, lengths and empty arrays, and the getPayment test uses toEqual against the created payment. Criterion (b) holds for 37 of the 38 tests. Those tests all go through expectApiError, which checks toBeInstanceOf(PaymentsApiError) and asserts both status and code. It fails for one test. &#39;carries the server message on the error&#39; (createPayment) is a failure-path test, but it only checks error.name and error.message. It does not assert status or code, and it casts to PaymentsApiError without an instanceof check. That makes (b) not literally true for every failure-path test, so the score is not 1.0. The gap is a single supplementary test, and its assertions are concrete rather than existence checks. No test is trivial or only checks that something threw. The weakest test is &#39;carries the server message on the error&#39;. Weakest success-path test: &#39;creates a pending payment for tok_pending&#39;, which asserts only status.</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Error</span>
+          <p class="detail-copy detail-reason">I read payments.test.ts. It has 38 tests: 11 for createPayment, 3 for getPayment, 5 for listPayments, 13 for refundPayment and 6 for cancelPayment. Criterion (a) holds. Every success-path test asserts concrete values. They check the pay_ id prefix, status, amount, currency, source, amountRefunded and createdAt. The list tests check exact ids, lengths and empty arrays, and the getPayment test uses toEqual against the created payment. Criterion (b) holds for 37 of the 38 tests. Those tests all go through expectApiError, which checks toBeInstanceOf(PaymentsApiError) and asserts both status and code. It fails for one test. &#39;carries the server message on the error&#39; (createPayment) is a failure-path test, but it only checks error.name and error.message. It does not assert status or code, and it casts to PaymentsApiError without an instanceof check. That makes (b) not literally true for every failure-path test, so the score is not 1.0. The gap is a single supplementary test, and its assertions are concrete rather than existence checks. No test is trivial or only checks that something threw. The weakest test is &#39;carries the server message on the error&#39;. Weakest success-path test: &#39;creates a pending payment for tok_pending&#39;, which asserts only status.</p>
+        </section>
+        
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">102,930</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,476</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-6-0"
+      data-detail-heading="Result detail - row 7, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">38381 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.126019</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">91,966</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 39 tests, and all 39 pass under `bun test`.
+
+Every method has happy-path tests, and every error test asserts both `status` and `code` on a `PaymentsApiError`. A shared `expectApiError` helper does this. It also fails the test if the call doesn&#39;t reject, or if the thrown error isn&#39;t a `PaymentsApiError`.
+
+- **`createPayment`:**
+  - Success: `tok_visa` gives a succeeded payment and `tok_pending` gives a pending one.
+  - Errors: 402 `card_declined`, 402 `insufficient_funds`, 500 `processing_error`, 400 `invalid_source`, and 400 `invalid_request` for zero, negative and non-integer amounts.
+- **`getPayment`:**
+  - Success: it returns the created payment.
+  - Errors: 404 `payment_not_found`.
+- **`listPayments`:**
+  - Success: empty list, full list, a status filter, and a filter with no matches.
+- **`refundPayment`:**
+  - Success: full refund, partial refund, completing a partial refund with a second one, and the refund showing up in `getPayment`.
+  - Errors: 404 `payment_not_found`, 409 `already_refunded`, 409 `not_refundable` (pending and canceled payments), and 422 `invalid_refund_amount` (over the balance, over the remaining balance after a partial refund, zero, negative, non-integer).
+- **`cancelPayment`:**
+  - Success: it cancels a pending payment, and the cancellation shows up in `getPayment`.
+  - Errors: 404 `payment_not_found` and 409 `not_cancelable` (succeeded, already canceled, refunded).
+- **401 `unauthorized`:** tested for all five methods, using a client with a wrong API key.
+
+I did not test `tok_timeout`. The mock delays that request by 10 seconds and `PaymentsClient` has no timeout option, so there is no client behavior to assert. The tests also reset the mock&#39;s stored payments before each test, so they don&#39;t depend on each other.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">86,077</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,889</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-7-0"
+      data-detail-heading="Result detail - row 8, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">31899 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.113724</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">70,612</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 34 tests, and all 34 pass under `bun test`.
+
+**Happy paths**
+- `createPayment` is covered for both `tok_visa` (succeeded) and `tok_pending` (pending).
+- `getPayment` returns a payment that was just created.
+- `listPayments` is covered with no filter, with a status filter, and with an empty result.
+- `refundPayment` is covered for a full refund, a partial refund, and refunding the remainder after a partial one.
+- `cancelPayment` cancels a pending payment.
+
+**Error responses**
+Every error test goes through an `expectApiError` helper. It asserts the thrown error is a `PaymentsApiError` and checks both `status` and `code`.
+- 401 `unauthorized` is tested on all five methods.
+- 400 `invalid_request` is tested for a zero amount and a non-integer amount.
+- 400 `invalid_source` is tested for an unknown source token.
+- 402 `card_declined` and 402 `insufficient_funds` are tested on create.
+- 500 `processing_error` is tested on create.
+- 404 `payment_not_found` is tested on get, refund and cancel.
+- 409 `already_refunded` and 409 `not_refundable` are tested on refund. The `not_refundable` case runs against both a pending and a canceled payment.
+- 409 `not_cancelable` is tested on cancel, for a succeeded payment and an already canceled one.
+- 422 `invalid_refund_amount` is tested for an amount over the balance, zero, a non-integer, and an amount over what remains after a partial refund.
+
+I left out `tok_timeout`. It makes the mock wait 10 seconds and returns no error response. `PaymentsClient` also has no timeout, so a test would only be checking `fetch`. It would also go past Bun&#39;s 5-second default test limit.
+
+Isolation: the server runs with `onUnhandledRequest: &quot;error&quot;`, and `resetPayments()` runs after each test.
+
+Per your eval workflow, I haven&#39;t run `promptfoo eval` or touched the logs or versioned artifacts.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">65,444</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,168</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-8-0"
+      data-detail-heading="Result detail - row 9, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">33645 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.115020</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">69,427</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 34 tests, and `bun test src/payments.test.ts` passes all of them.
+
+- **Happy paths:** every method has one.
+  - `createPayment` covers both `tok_visa` (succeeded) and `tok_pending` (pending).
+  - `getPayment` returns the stored payment.
+  - `listPayments` covers empty, all, and status-filtered results.
+  - `refundPayment` covers full, partial, and completing a refund after a partial one.
+  - `cancelPayment` cancels a pending payment.
+- **Error responses:** each error test goes through one helper, `expectApiError`. It asserts the rejection is a `PaymentsApiError` and checks both `status` and `code`.
+  - **401:** `unauthorized`, checked on all five methods using a client with a bad key.
+  - **400:** `invalid_request` for a zero amount, a non-integer amount, and a missing currency, plus `invalid_source` for an unknown token.
+  - **402:** `card_declined` and `insufficient_funds`.
+  - **500:** `processing_error`.
+  - **404:** `payment_not_found` on get, refund, and cancel.
+  - **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already canceled payments).
+  - **422:** `invalid_refund_amount` for an amount over the payment, an amount over the remaining balance, a zero amount, and a non-integer amount.
+- **Not covered:** the `tok_timeout` source. It only delays the response by 10 seconds and returns no error response.
+- **State:** `resetPayments()` runs in `beforeEach`, so the in-memory store doesn&#39;t leak between tests. The server is set to `onUnhandledRequest: &quot;error&quot;`, so a request that doesn&#39;t match any handler fails the test.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">64,041</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,386</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+          
+    <template
+      id="result-detail-9-0"
+      data-detail-heading="Result detail - row 10, prompt 1"
+    >
+      <article class="detail-content" data-detail-template>
+        <div class="detail-summary">
+          <span class="status-pill pass"
+            >PASS</span
+          >
+          <span class="score-pill">Score 1.00</span>
+          
+          <span class="named-score-pill"
+            >tests_pass 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >method_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >error_coverage 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >project_conventions 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >scope_discipline 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >mutation_score 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >assertion_quality 1.00</span
+          >
+          
+          <span class="named-score-pill"
+            >isolation_determinism 1.00</span
+          >
+          
+        </div>
+
+        <div class="detail-metrics">
+          
+          <div class="detail-metric">
+            <span class="detail-metric-label">Provider</span>
+            <span class="detail-metric-value">anthropic:claude-agent-sdk</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Latency</span>
+            <span class="detail-metric-value">33007 ms</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Cost</span>
+            <span class="detail-metric-value">$0.112576</span>
+          </div>
+           
+          <div class="detail-metric">
+            <span class="detail-metric-label">Tokens</span>
+            <span class="detail-metric-value">70,068</span>
+          </div>
+          
+        </div>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Test</span>
+          <p class="detail-copy">Generate a passing, bug-detecting test suite for PaymentsClient</p>
+        </section>
+         
+        <section class="detail-section">
+          <span class="detail-section-title">Prompt</span>
+          <p class="detail-copy"># Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+</p>
+        </section>
+        
+
+        <section class="detail-section">
+          <span class="detail-section-title">Output</span>
+          <p class="detail-copy">I wrote `src/payments.test.ts` with 31 tests, and all 31 pass under `bun test`.
+
+**Happy paths:** every method is covered. `createPayment` has `tok_visa` (succeeded) and `tok_pending` (pending). `getPayment` returns the stored payment. `listPayments` covers empty, all, and status-filtered results. `refundPayment` covers a full refund and a partial refund followed by the remainder. `cancelPayment` cancels a pending payment.
+
+**Error responses:** every error test goes through an `expectApiError` helper. It asserts that the error is a `PaymentsApiError` and that both `status` and `code` match.
+- **400:** `invalid_request` (zero, negative and non-integer amounts, and a missing field) and `invalid_source`.
+- **401:** `unauthorized` on all five methods, using a client with a wrong key.
+- **402:** `card_declined` and `insufficient_funds`.
+- **404:** `payment_not_found` on get, refund and cancel.
+- **409:** `already_refunded`, `not_refundable` (pending and canceled payments), and `not_cancelable` (succeeded and already-canceled payments).
+- **422:** `invalid_refund_amount` (above the balance, zero or negative, and above what remains after a partial refund).
+- **500:** `processing_error`.
+
+I didn&#39;t test `tok_timeout`. The mock delays that response by 10 seconds and the client has no abort signal or timeout option. A test would have to wait past Bun&#39;s 5-second default and could only fail. If you want it covered, `PaymentsClient` needs a timeout option first.
+
+I reset the mock&#39;s payment store in `beforeEach` so the tests don&#39;t affect each other.</p>
+        </section>
+
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Reason</span>
+          <p class="detail-copy detail-reason">All assertions passed</p>
+        </section>
+         
+        <div data-detail-variable-slot></div>
+        
+        <section class="detail-section">
+          <span class="detail-section-title">Token Breakdown</span>
+          <div class="detail-metrics">
+            
+            <div class="detail-metric">
+              <span class="detail-metric-label">Prompt</span>
+              <span class="detail-metric-value">64,918</span>
+            </div>
+             
+            <div class="detail-metric">
+              <span class="detail-metric-label">Completion</span>
+              <span class="detail-metric-value">5,150</span>
+            </div>
+            
+          </div>
+        </section>
+        
+      </article>
+    </template>
+      
+
+    <script>
+      (() => {
+        const searchInput = document.querySelector('[data-report-search]');
+        const statusFilter = document.querySelector('[data-status-filter]');
+        const visibleCount = document.querySelector('[data-visible-count]');
+        const emptyState = document.querySelector('[data-empty-state]');
+        const rows = Array.from(document.querySelectorAll('[data-result-row]'));
+
+        const getRowStatuses = (row) => {
+          const statuses = Array.from(row.querySelectorAll('td[data-output-cell="true"]')).map(
+            (cell) => cell.getAttribute('data-status') || '',
+          );
+
+          return new Set(statuses.filter(Boolean));
+        };
+
+        const applyFilters = () => {
+          const query = (searchInput?.value || '').trim().toLowerCase();
+          const status = statusFilter?.value || 'all';
+          let shown = 0;
+
+          rows.forEach((row) => {
+            const text = Array.from(row.querySelectorAll('[data-search]'))
+              .map((cell) => cell.getAttribute('data-search') || '')
+              .join('\n')
+              .toLowerCase();
+            const matchesQuery = query.length === 0 || text.includes(query);
+            const rowStatuses = getRowStatuses(row);
+            const matchesStatus =
+              status === 'all' ||
+              (status === 'pass' &&
+                rowStatuses.size > 0 &&
+                [...rowStatuses].every((value) => value === 'pass')) ||
+              rowStatuses.has(status);
+            const visible = matchesQuery && matchesStatus;
+
+            row.hidden = !visible;
+            if (visible) {
+              shown += 1;
+            }
+          });
+
+          if (visibleCount) {
+            visibleCount.textContent = String(shown);
+          }
+          emptyState?.classList.toggle('visible', shown === 0);
+        };
+
+        searchInput?.addEventListener('input', applyFilters);
+        statusFilter?.addEventListener('change', applyFilters);
+        applyFilters();
+
+        const detailDrawer = document.querySelector('[data-detail-drawer]');
+        const detailBackdrop = document.querySelector('[data-detail-backdrop]');
+        const detailBody = document.querySelector('[data-detail-body]');
+        const detailTitle = document.querySelector('[data-detail-title]');
+        const detailClose = document.querySelector('[data-detail-close]');
+        let lastDetailTrigger = null;
+        const getDetailFocusableElements = () =>
+          detailDrawer
+            ? Array.from(
+                detailDrawer.querySelectorAll(
+                  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                ),
+              )
+            : [];
+        const appendVariableDetails = (trigger) => {
+          if (!detailBody) {
+            return;
+          }
+
+          const slot = detailBody.querySelector('[data-detail-variable-slot]');
+          const row = trigger.closest('[data-result-row]');
+          if (!row) {
+            slot?.remove();
+            return;
+          }
+
+          const variables = Array.from(row.querySelectorAll('[data-variable-name]'))
+            .map((cell) => ({
+              name: cell.getAttribute('data-variable-name') || '',
+              value: cell.textContent?.trim() || '',
+            }))
+            .filter((variable) => variable.name || variable.value);
+          if (variables.length === 0) {
+            slot?.remove();
+            return;
+          }
+
+          const section = document.createElement('section');
+          section.className = 'detail-section';
+
+          const title = document.createElement('span');
+          title.className = 'detail-section-title';
+          title.textContent = 'Variables';
+          section.appendChild(title);
+
+          const list = document.createElement('div');
+          list.className = 'detail-variables';
+          variables.forEach((variable) => {
+            const item = document.createElement('div');
+            item.className = 'detail-variable';
+
+            const name = document.createElement('span');
+            name.className = 'detail-variable-name';
+            name.textContent = variable.name;
+
+            const value = document.createElement('p');
+            value.className = 'detail-variable-value';
+            value.textContent = variable.value;
+
+            item.append(name, value);
+            list.appendChild(item);
+          });
+
+          section.appendChild(list);
+          if (slot) {
+            slot.replaceWith(section);
+          } else {
+            detailBody.appendChild(section);
+          }
+        };
+
+        const closeDetail = () => {
+          if (!detailDrawer || !detailBackdrop || !detailBody) {
+            return;
+          }
+
+          detailDrawer.hidden = true;
+          detailBackdrop.hidden = true;
+          detailBody.textContent = '';
+          document.body.classList.remove('detail-open');
+          lastDetailTrigger?.focus();
+          lastDetailTrigger = null;
+        };
+
+        const openDetail = (trigger) => {
+          if (!detailDrawer || !detailBackdrop || !detailBody || !detailTitle) {
+            return;
+          }
+
+          const templateId = trigger.getAttribute('data-detail-target');
+          const template = templateId ? document.getElementById(templateId) : null;
+          if (!template || template.tagName !== 'TEMPLATE') {
+            return;
+          }
+
+          detailTitle.textContent = template.getAttribute('data-detail-heading') || 'Result detail';
+          detailBody.innerHTML = template.innerHTML.trim();
+          appendVariableDetails(trigger);
+          detailDrawer.hidden = false;
+          detailBackdrop.hidden = false;
+          document.body.classList.add('detail-open');
+          lastDetailTrigger = trigger;
+          detailClose?.focus();
+        };
+
+        document.querySelectorAll('[data-open-detail]').forEach((button) => {
+          button.addEventListener('click', () => openDetail(button));
+        });
+        detailClose?.addEventListener('click', closeDetail);
+        detailBackdrop?.addEventListener('click', closeDetail);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && detailDrawer && !detailDrawer.hidden) {
+            closeDetail();
+            return;
+          }
+
+          if (event.key === 'Tab' && detailDrawer && !detailDrawer.hidden) {
+            const focusableElements = getDetailFocusableElements();
+            if (focusableElements.length === 0) {
+              event.preventDefault();
+              detailDrawer.focus();
+              return;
+            }
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+            const activeElement = document.activeElement;
+
+            if (event.shiftKey && activeElement === firstElement) {
+              event.preventDefault();
+              lastElement.focus();
+            } else if (!event.shiftKey && activeElement === lastElement) {
+              event.preventDefault();
+              firstElement.focus();
+            }
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
