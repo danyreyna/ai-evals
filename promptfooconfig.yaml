@@ -5,7 +5,7 @@
 description: "Prompt evaluation and iteration exercise for a given task."
 
 prompts:
-  - file://src/prompts/prompt-to-test.md
+  - file://tests/prompts/prompt-to-test.md
 
 providers:
   - id: anthropic:claude-agent-sdk
@@ -36,7 +36,7 @@ defaultTest:
         effort: low
 
 tests:
-  - file://src/tests/some-test.yaml
+  - file://tests/some-test.yaml
 
   # Note: All the following tests and assertions are boilerplate that will be removed
   - vars:
@@ -68,4 +68,4 @@ tests:
         # Coding agent grader
         provider: "local-claude-code"
 
-outputPath: src/evaluations/results.html
+outputPath: tests/evaluations/results.html
