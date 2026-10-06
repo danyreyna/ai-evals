@@ -9,7 +9,6 @@ prompts:
 
 providers:
   - id: anthropic:claude-agent-sdk
-    label: "local-claude-code"
     config:
       # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
       apiKeyRequired: false
@@ -65,6 +64,13 @@ tests:
       - type: agent-rubric
         value: Inspect the project and verify that the response names the correct configuration file.
         # Coding agent grader
-        provider: "local-claude-code"
+        provider:
+          id: anthropic:claude-agent-sdk
+          config:
+            # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
+            apiKeyRequired: false
+            model: sonnet
+            effort: medium
+            working_dir: ./src
 
 outputPath: tests/evaluations/results.html
