@@ -57,7 +57,20 @@ The two agent-rubric criteria were not validated offline because they need a mod
 
 Each instruction in a prompt must serve at least one criterion. This matrix is updated with every version. Target: at least 90% of instructions mapped.
 
-(Filled in as prompts are written.)
+Matrix for the final prompt (v4). An instruction is counted as load-bearing if removing it would plausibly cause at least one metric to fail.
+
+| #   | Instruction                                                   | Serves                                     |
+| --- | ------------------------------------------------------------- | ------------------------------------------ |
+| 1   | Role: "You are a TypeScript test engineer."                   | none directly (framing only)               |
+| 2   | Write tests for `PaymentsClient`                              | tests_pass, method_coverage                |
+| 3   | in `src/payments.test.ts`                                     | scope_discipline, tests_pass               |
+| 4   | Cover the happy path of every method                          | method_coverage, assertion_quality         |
+| 5   | and the error responses the mock server can return            | error_coverage, mutation_score             |
+| 6   | Context: client in `src/index.ts`, mock server in handlers.ts | project_conventions, error_coverage        |
+| 7   | Every test expecting a `PaymentsApiError` asserts status+code | assertion_quality                          |
+| 8   | "even if it also checks the message"                          | assertion_quality (closed the v3 loophole) |
+
+Result: 7 of 8 instructions mapped (87.5%). This is below the 90% target. The only unmapped line is the Role. Dropping it would give 8/8 (100%), but that is an untested prompt change, so it needs its own eval run (see the final entry).
 
 ### Iteration 1: baseline (RED)
 
@@ -232,3 +245,34 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 **Reasoning:** the prediction held. Rewording one constraint to remove the "message-only test is not an error test" reading fixed the only failing metric, with no other change. Caveat: 10/10 on 10 runs is a point estimate, not proof of 95% (if the true rate were 90%, a clean 10/10 would still occur about 35% of the time). v2 and v3 each lost one run to a stray judge-flagged test, so a single 20-run confirmation is required before claiming the target.
 
 **Next:** `bun run eval --repeat 20`, pass bar 19/20 or better.
+
+### Final confirmation: v4 at 20 runs
+
+**Command:** `bun run eval --repeat 20` with the v4 prompt (`tests/evaluations/results-v4-confirm.json`). Cost 2.46M tokens, 21.7 min.
+
+**Result:** overall **19/20 (95%)**. Meets the 95% bar exactly.
+
+| Metric                | Pass rate |
+| --------------------- | --------- |
+| tests_pass            | 20/20     |
+| method_coverage       | 20/20     |
+| error_coverage        | 20/20     |
+| project_conventions   | 20/20     |
+| scope_discipline      | 20/20     |
+| mutation_score        | 20/20     |
+| assertion_quality     | 19/20     |
+| isolation_determinism | 20/20     |
+
+**Reasoning:** the one failure (run 7, assertion_quality 0.5) came from two supplementary tests (`does not store a payment when creation fails` and `does not change the payment when a refund is rejected`) that go through a `captureError` helper which only checks that a `PaymentsApiError` was thrown. Both are tests that expect a `PaymentsApiError` but skip status and code, so the v4 wording was applied inconsistently once, not misread. Seven iterations of evidence across v1 to v4: 0/10, 9/10, 9/10, 10/10, then 19/20 on the larger sample. The true rate is probably in the low-to-mid 90s, and 19/20 is a pass of the exercise's bar, not a proof of 95%.
+
+**Exercise requirements check:**
+
+| Requirement                               | Status                                          |
+| ----------------------------------------- | ----------------------------------------------- |
+| Prompt in RTCC, deliberate design         | Met                                             |
+| At least 90% of instructions load-bearing | Not met: 87.5% (7/8), the Role line is unmapped |
+| At least 3 distinct criteria              | Met: 8                                          |
+| 95%+ achievable on mid-tier models        | Met: 19/20 on Sonnet                            |
+| Clear pass/fail thresholds                | Met                                             |
+| At least 2 iterations with full records   | Met: 4 iterations plus confirmation             |
+| Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 and v4 Refactor       |
