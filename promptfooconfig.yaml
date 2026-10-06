@@ -34,6 +34,6 @@ defaultTest:
         effort: low
 
 tests:
-  - file://tests/some-test.yaml
+  - file://tests/prompt-tests.yaml
 
 outputPath: tests/evaluations/results.html
