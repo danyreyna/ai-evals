@@ -126,4 +126,19 @@ wording is added, so any remaining gap is attributable to missing guidance and b
 | isolation_determinism     | 50 to 90%          |
 | **Overall run pass rate** | **10 to 40%**      |
 
-**Result:** pending.
+**Result (10 runs, `tests/evaluations/results-v2.json`):** overall **9/10 (90%)**, up from 0/10. Cost 942k tokens, 10.3 min.
+
+| Metric                | Predicted  | v1    | v2    |
+| --------------------- | ---------- | ----- | ----- |
+| tests_pass            | 90 to 100% | 10/10 | 10/10 |
+| method_coverage       | n/a        | 10/10 | 10/10 |
+| error_coverage        | 40 to 80%  | 0/10  | 10/10 |
+| project_conventions   | n/a        | 10/10 | 10/10 |
+| scope_discipline      | n/a        | 10/10 | 10/10 |
+| mutation_score        | 50 to 90%  | 0/10  | 10/10 |
+| assertion_quality     | 30 to 70%  | 1/10  | 9/10  |
+| isolation_determinism | 50 to 90%  | 10/10 | 10/10 |
+
+**Reasoning:** the hypothesis held, and the effect was much larger than predicted. One clause was enough for Sonnet to cover all 11 error codes and kill all 8 mutants in every run. My prediction underestimated how much the model already knows about good error testing once the happy-path limit is gone; isolation also stayed perfect without any instruction. The single failing run (run 8, assertion_quality 0.85) had a test, `encodes ids that contain reserved characters`, that asserted HTTP status 404 and the message but not the code `payment_not_found`. That is a lapse on rubric criterion (b), "status AND code on every failure". The prompt never states that rule, so the model applied it from habit and missed once.
+
+**Gap to target:** 90% is below the 95% bar, and 10 runs cannot resolve 95% anyway (see "How to run").
