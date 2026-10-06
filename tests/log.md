@@ -171,4 +171,19 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 
 **Prediction (written before running):** overall 9 to 10 of 10. assertion_quality 10/10. All other metrics unchanged at 10/10. Final confirmation then needs `bun run eval --repeat 20` to claim 95%.
 
-**Result:** pending.
+**Result (10 runs, `tests/evaluations/results-v3.json`):** overall **9/10 (90%)**, same as v2. Cost 905k tokens, 9.7 min.
+
+| Metric                | Predicted | v2    | v3    |
+| --------------------- | --------- | ----- | ----- |
+| tests_pass            | 10/10     | 10/10 | 10/10 |
+| method_coverage       | 10/10     | 10/10 | 10/10 |
+| error_coverage        | 10/10     | 10/10 | 10/10 |
+| project_conventions   | 10/10     | 10/10 | 10/10 |
+| scope_discipline      | 10/10     | 10/10 | 10/10 |
+| mutation_score        | 10/10     | 10/10 | 10/10 |
+| assertion_quality     | 10/10     | 9/10  | 9/10  |
+| isolation_determinism | 10/10     | 10/10 | 10/10 |
+
+**Reasoning:** the prediction was half right. The RTCC restructure caused no regression (every other metric held at 10/10), so structure is safe. But the new constraint did not eliminate the assertion_quality miss. The failing run (run 6, score 0.5) had 37 of 38 failure tests going through an `expectApiError` helper that checks status and code, plus one test, `carries the server message on the error`, that checked only `error.name` and `error.message`. The model satisfied the rule for "error tests" but treated a message-passthrough test as a different kind of test. The v2 miss (a 404 test with no code check) and this one have the same shape: one stray failure-path test among 30+ that skips a field. The constraint's wording is the likely gap, since "every error test" is easy to read as "every test of an error code".
+
+**Status:** 9/10 twice is not distinguishable from 95% with 10 runs (a true 95% rate gives 9/10 or worse about 40% of the time), but it also does not demonstrate 95%. The remaining failure mode is isolated to one metric, one LLM-judged rubric, with a single stray test per failing run.
