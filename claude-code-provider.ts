@@ -6,7 +6,7 @@ import type {
 } from "promptfoo";
 import promptfoo from "promptfoo";
 
-// TODO: this wrapper is not needed https://www.promptfoo.dev/docs/providers/anthropic/#authenticating-via-a-claude-code-session
+// TODO: this wrapper is not needed https://www.promptfoo.dev/docs/providers/claude-agent-sdk/
 type Config = Record<string, string | number>;
 export default class CustomApiProvider implements ApiProvider {
   protected providerId: string;
