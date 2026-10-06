@@ -17,6 +17,14 @@ providers:
       model: sonnet
       effort: medium
       working_dir: ./src
+      # The task is "write a test file and make it pass", so the agent needs to write files and run `bun test`.
+      # Don't use `copy_working_dir`: a copy of `./src` has no `node_modules`, so `msw` would not resolve.
+      # Isolation comes from:
+      # - `maxConcurrency: 1` in `evaluateOptions` below
+      # - the git reset in the hook at `tests/hooks/working-dir.mjs`
+      append_allowed_tools: ["Write", "Edit", "MultiEdit", "Bash"]
+      disallowed_tools: ["WebFetch", "WebSearch"]
+      permission_mode: acceptEdits
       ask_user_question:
         behavior: first_option
 
