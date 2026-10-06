@@ -26,8 +26,14 @@ providers:
 
 defaultTest:
   options:
-    # Default grader
-    provider: "local-claude-code"
+    # Default grader. Text-only: no `working_dir` and no `tools`, so it only judges the output.
+    provider:
+      id: anthropic:claude-agent-sdk
+      config:
+        # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
+        apiKeyRequired: false
+        model: sonnet
+        effort: low
 
 tests:
   - file://src/tests/some-test.yaml
