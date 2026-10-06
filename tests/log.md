@@ -142,3 +142,33 @@ wording is added, so any remaining gap is attributable to missing guidance and b
 **Reasoning:** the hypothesis held, and the effect was much larger than predicted. One clause was enough for Sonnet to cover all 11 error codes and kill all 8 mutants in every run. My prediction underestimated how much the model already knows about good error testing once the happy-path limit is gone; isolation also stayed perfect without any instruction. The single failing run (run 8, assertion_quality 0.85) had a test, `encodes ids that contain reserved characters`, that asserted HTTP status 404 and the message but not the code `payment_not_found`. That is a lapse on rubric criterion (b), "status AND code on every failure". The prompt never states that rule, so the model applied it from habit and missed once.
 
 **Gap to target:** 90% is below the 95% bar, and 10 runs cannot resolve 95% anyway (see "How to run").
+
+### Iteration 3: RTCC structure and failure-path assertion rule (REFACTOR toward 95%)
+
+**Prompt:** `tests/prompts/prompt-to-test-v3.md`
+
+```
+# Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+```
+
+**Baseline (v2):** 9/10 overall. Only failure: assertion_quality 9/10 (run 8, one 404 test with no error code check).
+
+**Hypothesis:** the one miss is a missing explicit instruction, not a capability gap. A Constraints entry that states the rubric rule should turn the occasional lapse into a rule, so assertion_quality should reach 10/10. The prompt is also restructured into RTCC (Role, Task, Context, Constraints) with the same scope as v2, as the exercise requires structured prompting. Two changes ship together (structure plus rule), so if any metric regresses, the restructure is the suspect because the v2 wording is otherwise preserved. Every line is load-bearing: Role frames the work, Task drives method_coverage, error_coverage and mutation_score, Context names the files under test, and the single constraint drives assertion_quality. Isolation is deliberately not touched, since it is already 10/10 and extra wording there would be dead weight.
+
+**Prediction (written before running):** overall 9 to 10 of 10. assertion_quality 10/10. All other metrics unchanged at 10/10. Final confirmation then needs `bun run eval --repeat 20` to claim 95%.
+
+**Result:** pending.
