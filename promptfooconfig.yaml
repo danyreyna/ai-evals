@@ -19,7 +19,6 @@ providers:
       tools:
         type: preset
         preset: claude_code
-      setting_sources: ["project"]
       append_allowed_tools: ["AskUserQuestion"]
       ask_user_question:
         behavior: first_option
