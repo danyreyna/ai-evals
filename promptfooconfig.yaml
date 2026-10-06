@@ -17,9 +17,6 @@ providers:
       model: sonnet
       effort: medium
       working_dir: ./src
-      tools:
-        type: preset
-        preset: claude_code
       ask_user_question:
         behavior: first_option
 
