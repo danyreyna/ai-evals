@@ -25,6 +25,7 @@ providers:
       append_allowed_tools: ["Write", "Edit", "MultiEdit", "Bash"]
       disallowed_tools: ["WebFetch", "WebSearch"]
       permission_mode: acceptEdits
+      max_budget_usd: 1.5
       ask_user_question:
         behavior: first_option
 
