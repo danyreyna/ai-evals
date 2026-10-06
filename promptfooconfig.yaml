@@ -13,6 +13,9 @@ providers:
     config:
       apiKeyRequired: false
       working_dir: ./src
+      tools:
+        type: preset
+        preset: claude_code
 
 # TODO: grader
 defaultTest:
