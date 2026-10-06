@@ -317,4 +317,30 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 | isolation_determinism     | 20/20              |
 | **Overall run pass rate** | **18 to 20 of 20** |
 
-**Result:** pending.
+**Result (20 runs, `tests/evaluations/results-v5.json`):** overall **16/20 (80%)**, down from 19/20. Cost 1.92M agent tokens plus 1.36M judge tokens, 22.2 min. Seven of 8 metrics 20/20; assertion_quality 16/20.
+
+| Metric                | Predicted | v4 (20 runs) | v5 (20 runs) |
+| --------------------- | --------- | ------------ | ------------ |
+| tests_pass            | 20/20     | 20/20        | 20/20        |
+| method_coverage       | 20/20     | 20/20        | 20/20        |
+| error_coverage        | 20/20     | 20/20        | 20/20        |
+| project_conventions   | 20/20     | 20/20        | 20/20        |
+| scope_discipline      | 20/20     | 20/20        | 20/20        |
+| mutation_score        | 20/20     | 20/20        | 20/20        |
+| assertion_quality     | 18 to 20  | 19/20        | 16/20        |
+| isolation_determinism | 20/20     | 20/20        | 20/20        |
+
+**Failures (all assertion_quality):**
+
+| Run | Score | Cause                                                                                                                                                                                                                                 |
+| --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 0.85  | `does not store a payment when creation fails` and `does not change the payment when a refund is rejected` swallow the rejection with `.catch(() => undefined)`, so status and code are never asserted. Same shape as the v4 failure. |
+| 6   | 0.75  | `sends the bearer token and JSON body` and `url-encodes the id in the request path` override the handler and assert only on the captured request, discarding the client's return value.                                               |
+| 12  | 0.5   | Same request-inspection pair as run 6.                                                                                                                                                                                                |
+| 18  | 0.0   | Judge output was not parseable ("Could not extract JSON from agent-rubric response"). This is an eval infrastructure failure, not a judgment about the suite.                                                                         |
+
+**Reasoning:** the prediction was wrong on the pass rate (16 vs 18 to 20), so the hypothesis "the Role rewording is neutral for pass rate" is not supported at this sample size. But the evidence says the Role did not cause the drop. I counted patterns in the generated suites: handler-override tests (`server.use`) appear in 13/20 v5 suites vs 14/20 v4 suites, and swallowed-catch tests in 5/20 vs 4/20. The model writes the same suite shapes under both prompts. What differs is how the LLM judge treats them: in v4 the request-inspection tests were usually let through, in v5 three runs penalized them (runs 6 and 12 cite rubric clause (a), run 1 cites clause (b)). One further run was lost to a judge parse failure. Two takeaways. First, the 19/20 for v4 was probably on the lucky side, as the v4 entry already warned, so the true rate for this prompt family is closer to 85 to 90%. Second, the remaining failures are two specific test shapes that the prompt never forbids: tests that discard the client's result and tests that swallow a rejection. Both break the rubric, and both are fixable with an instruction.
+
+**Load-bearing note:** the v5 Role maps to mutation_score and assertion_quality by design, but this run gives no evidence that it helps or hurts (suite shapes were unchanged). The 8/8 claim is by construction, not by measurement.
+
+**Next:** iteration 6 targets the two specific test shapes behind runs 1, 6 and 12.
