@@ -83,4 +83,19 @@ Can you please write tests for the happy-path of `PaymentsClient`?
 
 **Hypothesis:** the prompt has no role, no target file, no success definition, and explicitly limits scope to the happy path. Sonnet will do exactly what was asked, so error and mutation criteria fail by construction. This is the Red step: the evals must fail before we change anything.
 
-**Result:** pending. Run `bun run eval`, then tell me when it finishes.
+**Result (10 runs, `tests/evaluations/results-v1.json`):** overall **0/10 (0%)**. Cost 964k tokens, 8.4 min.
+
+| Metric                | Predicted  | Actual |
+| --------------------- | ---------- | ------ |
+| tests_pass            | 80 to 100% | 10/10  |
+| method_coverage       | 90 to 100% | 10/10  |
+| error_coverage        | 0 to 20%   | 0/10   |
+| project_conventions   | 70 to 100% | 10/10  |
+| scope_discipline      | 100%       | 10/10  |
+| mutation_score        | 0%         | 0/10   |
+| assertion_quality     | 40 to 80%  | 1/10   |
+| isolation_determinism | 40 to 80%  | 10/10  |
+
+**Reasoning:** the Red step worked. Every run wrote about 10 green, all-success-path tests, killed exactly 5/8 mutants (survivors: non-2xx no longer throws, error code lost, HTTP status lost), and asserted 0/11 error codes. All three survivors are error-handling mutants, so one root cause explains three failing metrics: the prompt says "happy-path". Two predictions were wrong: `assertion_quality` was lower than predicted (the rubric requires failure-path asserts, so a happy-path file cannot score well) and `isolation_determinism` was higher (happy-path suites that create their own payments are naturally isolated). The judge for isolation is therefore untested against error-path suites.
+
+**Next (iteration 2):** plan is 3 iterations in total, each a small change. Iteration 2 changes one thing only: broaden the request from the happy path to error cases.
