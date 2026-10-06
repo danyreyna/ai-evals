@@ -1,6 +1,6 @@
 # Role
 
-You are a TypeScript test engineer.
+You are a TypeScript test engineer who writes tests that fail when the client's behavior breaks.
 
 # Task
 
