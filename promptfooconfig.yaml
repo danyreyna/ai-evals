@@ -12,6 +12,8 @@ providers:
     config:
       # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
       apiKeyRequired: false
+      # Don't add evaluations transcripts to Claude Code at ~/.claude/projects/
+      persist_session: false
       model: sonnet
       effort: medium
       working_dir: ./src
@@ -30,6 +32,8 @@ defaultTest:
       config:
         # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
         apiKeyRequired: false
+        # Don't add evaluations transcripts to Claude Code at ~/.claude/projects/
+        persist_session: false
         model: sonnet
         effort: low
 
@@ -69,6 +73,8 @@ tests:
           config:
             # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
             apiKeyRequired: false
+            # Don't add evaluations transcripts to Claude Code at ~/.claude/projects/
+            persist_session: false
             model: sonnet
             effort: medium
             working_dir: ./src
