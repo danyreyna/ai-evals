@@ -25,6 +25,12 @@ providers:
 extensions:
   - file://tests/hooks/working-dir.mjs:extensionHook
 
+evaluateOptions:
+  # Isolate runs since every run writes to the same file.
+  maxConcurrency: 1
+  repeat: 10
+  timeoutMs: 900000
+
 defaultTest:
   options:
     # Default grader. Text-only: no `working_dir` and no `tools`, so it only judges the output.
