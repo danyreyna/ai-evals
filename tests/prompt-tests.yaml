@@ -1,32 +1,62 @@
-# TODO: Replace these examples with your actual assertions
-- vars:
-    topic: bananas
+# A single run PASSES only if every assertion below passes.
+# The headline number is `runs passed / runs`.
+# Each assertion has a `metric` so `tests/evaluations/results.json`
+# also reports a pass rate per criterion.
 
-- vars:
-    topic: avocado toast
+# What is graded is the file the agent writes at `src/payments.test.ts`,
+# not its chat reply.
+# The two agent-rubric graders need file access, so they run in the
+# same `./src` directory the agent wrote to (with read-only tools by default).
+- description: Generate a passing, bug-detecting test suite for PaymentsClient
   assert:
-    # For more information on assertions, see https://promptfoo.dev/docs/configuration/expected-outputs
-
-    # Make sure output contains the word "avocado"
-    - type: icontains
-      value: avocado
-
-    # Prefer shorter outputs
+    # 1. Does the suite run green? (deterministic: bun test)
     - type: javascript
-      value: 1 / (output.length + 1)
+      metric: tests_pass
+      value: file://tests/assertions/tests-pass.mjs
 
-- vars:
-    topic: new york city
-  assert:
-    # For more information on model-graded evals, see https://promptfoo.dev/docs/configuration/expected-outputs/model-graded
-    - type: llm-rubric
-      value: ensure that the output is funny
+    # 2. Is every public client method exercised? (deterministic: static scan)
+    - type: javascript
+      metric: method_coverage
+      value: file://tests/assertions/method-coverage.mjs
 
-- assert:
+    # 3. Does it assert the mock server's error contract? (deterministic: >= 9 of 11 codes)
+    - type: javascript
+      metric: error_coverage
+      value: file://tests/assertions/error-coverage.mjs
+
+    # 4. Does it use the repo's stack and leave the MSW lifecycle intact? (deterministic)
+    - type: javascript
+      metric: project_conventions
+      value: file://tests/assertions/conventions.mjs
+
+    # 5. Did the agent only touch src/payments.test.ts? (deterministic: git status)
+    - type: javascript
+      metric: scope_discipline
+      value: file://tests/assertions/scope.mjs
+
+    # 6. Does the suite catch real bugs? (deterministic: mutation testing, >= 7 of 8 mutants killed)
+    - type: javascript
+      metric: mutation_score
+      value: file://tests/assertions/mutation.mjs
+
+    # 7. Are the assertions meaningful? (LLM judge on the file)
     - type: agent-rubric
-      value: Inspect the project and verify that the response names the correct configuration file.
-      # Coding agent grader
-      provider:
+      metric: assertion_quality
+      threshold: 0.9
+      value: |
+        Open payments.test.ts in your working directory and grade ONLY the tests in that file.
+        Ignore the agent's chat message.
+
+        Score 1.0 if BOTH hold:
+        (a) Every success-path test asserts concrete values returned by PaymentsClient, such as
+            id format, status, amount, currency, amountRefunded, or the exact contents of a list.
+        (b) Every failure-path test asserts BOTH the HTTP status and the error code on a
+            PaymentsApiError. Merely asserting that something threw does not count.
+        Score 0.5 if most tests meet (a) and (b) but several only check existence or truthiness
+        (toBeDefined, toBeTruthy, typeof checks) or only that an error was thrown.
+        Score 0.0 if the file is missing, the tests are mostly trivial, or failure paths are not asserted.
+        Return the score and name the weakest test in your reason.
+      provider: &grader
         id: anthropic:claude-agent-sdk
         config:
           # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
@@ -36,3 +66,27 @@
           model: sonnet
           effort: medium
           working_dir: ./src
+
+    # 8. Are the tests independent and deterministic? (LLM judge on the file)
+    - type: agent-rubric
+      metric: isolation_determinism
+      threshold: 0.9
+      value: |
+        Open payments.test.ts and mocks/handlers.ts in your working directory. Grade ONLY the
+        tests in payments.test.ts. Ignore the agent's chat message.
+
+        Background: the mock server keeps payments in a module-level Map. server.resetHandlers()
+        does NOT clear it. The exported resetPayments() does. The token "tok_timeout" makes the
+        server wait 10 seconds.
+
+        Score 1.0 if ALL hold:
+        (a) Every test would pass when run alone and in any order: state-dependent tests (list,
+            filter, refund, cancel) either create their own payments or the suite calls
+            resetPayments() in beforeEach, and list assertions do not depend on leftovers.
+        (b) No test uses tok_timeout, real sleeps, or a timeout above 1 second.
+        (c) No test relies on a hardcoded payment id that the server did not return.
+            Deliberately unknown ids used for 404 checks are fine.
+        Score 0.5 if exactly one of (a), (b), (c) is violated in one or two tests.
+        Score 0.0 if the file is missing or the violations are widespread.
+        Name the violating test in your reason when the score is below 1.0.
+      provider: *grader
