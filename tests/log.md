@@ -99,3 +99,31 @@ Can you please write tests for the happy-path of `PaymentsClient`?
 **Reasoning:** the Red step worked. Every run wrote about 10 green, all-success-path tests, killed exactly 5/8 mutants (survivors: non-2xx no longer throws, error code lost, HTTP status lost), and asserted 0/11 error codes. All three survivors are error-handling mutants, so one root cause explains three failing metrics: the prompt says "happy-path". Two predictions were wrong: `assertion_quality` was lower than predicted (the rubric requires failure-path asserts, so a happy-path file cannot score well) and `isolation_determinism` was higher (happy-path suites that create their own payments are naturally isolated). The judge for isolation is therefore untested against error-path suites.
 
 **Next (iteration 2):** plan is 3 iterations in total, each a small change. Iteration 2 changes one thing only: broaden the request from the happy path to error cases.
+
+### Iteration 2: broaden scope to errors (GREEN attempt, small step)
+
+**Prompt:** `tests/prompts/prompt-to-test-v2.md`
+
+```
+Can you please write tests for `PaymentsClient` in `src/payments.test.ts`? Cover the happy path of every method and the error responses the mock server can return.
+```
+
+**Baseline (v1):** 0/10 overall. Failing: error_coverage 0/10, mutation_score 0/10 (5/8 killed), assertion_quality 1/10.
+
+**Hypothesis:** the three failures share one root cause, the "happy-path" limit. Replacing it with "happy path of every
+method and the error responses" should make error tests appear, which kills the 3 surviving error mutants and lifts
+error_coverage. Change is deliberately minimal (one clause, plus naming the target file). No quality or isolation
+wording is added, so any remaining gap is attributable to missing guidance and becomes the iteration 3 target.
+
+**Prediction (written before running):**
+
+| Metric                    | Expected pass rate |
+| ------------------------- | ------------------ |
+| tests_pass                | 90 to 100%         |
+| error_coverage            | 40 to 80%          |
+| mutation_score            | 50 to 90%          |
+| assertion_quality         | 30 to 70%          |
+| isolation_determinism     | 50 to 90%          |
+| **Overall run pass rate** | **10 to 40%**      |
+
+**Result:** pending.
