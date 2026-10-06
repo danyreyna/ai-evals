@@ -12,4 +12,4 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 
 # Constraints
 
-- Every error test must assert both the HTTP status and the error code on the `PaymentsApiError`.
+- Every test that expects a `PaymentsApiError` must assert both the HTTP status and the error code, even if it also checks the message.
