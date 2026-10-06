@@ -187,3 +187,33 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 **Reasoning:** the prediction was half right. The RTCC restructure caused no regression (every other metric held at 10/10), so structure is safe. But the new constraint did not eliminate the assertion_quality miss. The failing run (run 6, score 0.5) had 37 of 38 failure tests going through an `expectApiError` helper that checks status and code, plus one test, `carries the server message on the error`, that checked only `error.name` and `error.message`. The model satisfied the rule for "error tests" but treated a message-passthrough test as a different kind of test. The v2 miss (a 404 test with no code check) and this one have the same shape: one stray failure-path test among 30+ that skips a field. The constraint's wording is the likely gap, since "every error test" is easy to read as "every test of an error code".
 
 **Status:** 9/10 twice is not distinguishable from 95% with 10 runs (a true 95% rate gives 9/10 or worse about 40% of the time), but it also does not demonstrate 95%. The remaining failure mode is isolated to one metric, one LLM-judged rubric, with a single stray test per failing run.
+
+### Iteration 4: close the message-only loophole (REFACTOR)
+
+**Prompt:** `tests/prompts/prompt-to-test-v4.md`
+
+```
+# Role
+
+You are a TypeScript test engineer.
+
+# Task
+
+Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path of every method and the error responses the mock server can return.
+
+# Context
+
+`PaymentsClient` is defined in `src/index.ts` and calls the MSW mock server defined in `src/mocks/handlers.ts`.
+
+# Constraints
+
+- Every test that expects a `PaymentsApiError` must assert both the HTTP status and the error code, even if it also checks the message.
+```
+
+**Baseline (v3):** 9/10 overall. Only failure: assertion_quality 9/10 (run 6, score 0.5, `carries the server message on the error` asserted only name and message).
+
+**Hypothesis:** v3 said "every error test", which the model read as "every test of an error code". Rewording the trigger to "every test that expects a `PaymentsApiError`" and adding "even if it also checks the message" removes the reading under which a message-passthrough test is exempt. This is a rewording of the one existing constraint, not a new instruction, so the prompt stays at the same size and every line remains load-bearing. Nothing else changes, so any regression is attributable to this line.
+
+**Prediction (written before running):** overall 10/10, assertion_quality 10/10, all other metrics 10/10. Because 10 runs cannot resolve 95%, the result must be confirmed with `bun run eval --repeat 20` (19/20 or better).
+
+**Result:** pending.
