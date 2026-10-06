@@ -32,7 +32,7 @@ defaultTest:
 tests:
   - file://src/tests/some-test.yaml
 
-  # all the following tests are boilerplate that will be removed
+  # Note: All the following tests and assertions are boilerplate that will be removed
   - vars:
       topic: bananas
 
@@ -56,14 +56,8 @@ tests:
       - type: llm-rubric
         value: ensure that the output is funny
 
-  # TODO: coding agent
   - assert:
       - type: agent-rubric
-        value: Verify that the output accurately describes the exported API in src/report.ts.
-        provider:
-          id: openai:codex-sdk
-          config:
-            working_dir: ./sample-project
-            sandbox_mode: read-only
-            approval_policy: never
-            skip_git_repo_check: true
+        value: Inspect the project and verify that the response names the correct configuration file.
+        # Coding agent grader
+        provider: "local-claude-code"
