@@ -5,7 +5,7 @@
   "module": "src/index.ts",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.291",
-    "promptfoo": "0.123.1"
+    "promptfoo": "0.124.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
