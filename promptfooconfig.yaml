@@ -9,6 +9,7 @@ prompts:
 
 providers:
   - id: anthropic:claude-agent-sdk
+    label: "local-claude-code"
     config:
       # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
       apiKeyRequired: false
@@ -23,10 +24,10 @@ providers:
       ask_user_question:
         behavior: first_option
 
-# TODO: grader
 defaultTest:
   options:
-    provider: anthropic:claude-sonnet-5
+    # Default grader
+    provider: "local-claude-code"
 
 tests:
   - vars:
