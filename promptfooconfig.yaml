@@ -10,9 +10,10 @@ prompts:
 providers:
   - id: anthropic:claude-agent-sdk
     config:
+      # Required to use with local Claude Code: https://www.promptfoo.dev/docs/providers/claude-agent-sdk/#setup
+      apiKeyRequired: false
       model: sonnet
       effort: medium
-      apiKeyRequired: false
       working_dir: ./src
       tools:
         type: preset
