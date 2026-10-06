@@ -11,6 +11,8 @@ prompts:
 providers:
   - id: anthropic:claude-agent-sdk
     config:
+      model: sonnet
+      effort: medium
       apiKeyRequired: false
       working_dir: ./src
       tools:
