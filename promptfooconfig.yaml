@@ -61,3 +61,5 @@ tests:
         value: Inspect the project and verify that the response names the correct configuration file.
         # Coding agent grader
         provider: "local-claude-code"
+
+outputPath: src/evaluations/results.html
