@@ -20,7 +20,6 @@ providers:
       tools:
         type: preset
         preset: claude_code
-      append_allowed_tools: ["AskUserQuestion"]
       ask_user_question:
         behavior: first_option
 
