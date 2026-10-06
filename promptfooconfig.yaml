@@ -5,7 +5,7 @@
 description: "Prompt evaluation and iteration exercise for a given task."
 
 prompts:
-  - file://src/prompt-to-test.md
+  - file://src/prompts/prompt-to-test.md
 
 providers:
   - id: anthropic:claude-agent-sdk
