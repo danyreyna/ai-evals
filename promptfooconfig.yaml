@@ -12,6 +12,7 @@ providers:
   - id: anthropic:claude-agent-sdk
     config:
       apiKeyRequired: false
+      working_dir: ./src
 
 # TODO: grader
 defaultTest:
