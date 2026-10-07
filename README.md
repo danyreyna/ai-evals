@@ -34,6 +34,19 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
   - @tests/prompts/prompt-to-test-v6.md
   - @tests/prompts/prompt-to-test-v7.md
 
+### 2. The Evaluations
+
+- This project uses prompt foo.
+- Evaluations are referenced @promptfooconfig.yaml:57
+- Assertions, of types deterministic and agent rubrics, are defined @tests/prompt-tests.yaml
+- We use the following deterministic, custom JavaScript evaluations:
+  - @tests/assertions/conventions.mjs
+  - @tests/assertions/error-coverage.mjs
+  - @tests/assertions/method-coverage.mjs
+  - @tests/assertions/mutation.mjs
+  - @tests/assertions/scope.mjs
+  - @tests/assertions/tests-pass.mjs
+
 ## Promptfoo prompt evaluation
 
 ### Quick start
