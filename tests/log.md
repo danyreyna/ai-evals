@@ -250,7 +250,7 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 
 ### Final confirmation: v4 at 20 runs
 
-**Command:** `bun run eval --repeat 20` with the v4 prompt (`tests/evaluations/results-v4-confirm.json`). Cost 2.46M tokens, 21.7 min.
+**Command:** `bun run eval --repeat 20` with the v4 prompt (`tests/evaluations/results-v4-20-repetitions.json`). Cost 2.46M tokens, 21.7 min.
 
 **Result:** overall **19/20 (95%)**. Meets the 95% bar exactly.
 
@@ -462,7 +462,7 @@ Parse failures expected: 0. If one still occurs, the next step is to inspect the
 
 ### Iteration 7 confirmation: 20 more runs, nothing changed
 
-**Command:** `bun run eval --repeat 20` with the v7 prompt and the hardened judge, both unchanged (`tests/evaluations/results-v7-confirm.json`). Cost 2.53M agent tokens plus 1.34M judge tokens, 23.5 min. This was run to add evidence, not to fix anything, and the pass line was set before the run: 38/40 pooled.
+**Command:** `bun run eval --repeat 20` with the v7 prompt and the hardened judge, both unchanged (`tests/evaluations/results-v7-repetition-2.json`). Cost 2.53M agent tokens plus 1.34M judge tokens, 23.5 min. This was run to add evidence, not to fix anything, and the pass line was set before the run: 38/40 pooled.
 
 **Result:** overall **20/20 (100%)**, with all 8 metrics 20/20 and 0 parse failures. Pooled with the first v7 batch, the result is **40/40 (100%)**.
 
