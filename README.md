@@ -20,6 +20,20 @@ bun run view
 
 This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
+## Examination guide
+
+### 1. The Prompt
+
+- Final prompt is @tests/prompts/prompt-to-test.md
+- Each iteration has its prompt version:
+  - @tests/prompts/prompt-to-test-v1.md
+  - @tests/prompts/prompt-to-test-v2.md
+  - @tests/prompts/prompt-to-test-v3.md
+  - @tests/prompts/prompt-to-test-v4.md
+  - @tests/prompts/prompt-to-test-v5.md
+  - @tests/prompts/prompt-to-test-v6.md
+  - @tests/prompts/prompt-to-test-v7.md
+
 ## Promptfoo prompt evaluation
 
 ### Quick start
