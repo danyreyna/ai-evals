@@ -248,7 +248,7 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 
 **Next:** `bun run eval --repeat 20`, pass bar 19/20 or better.
 
-### Final confirmation: v4 at 20 runs
+### v4 confirmation: another 20 runs
 
 **Command:** `bun run eval --repeat 20` with the v4 prompt (`tests/evaluations/results-v4-20-repetitions.json`). Cost 2.46M tokens, 21.7 min.
 
