@@ -20,6 +20,10 @@ bun run view
 
 This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
+## Claude Code
+
+- This project configures promptfoo to run and evaluate using the locally configured Claude Code session.
+
 ## Examination guide
 
 ### 1. The Prompt
