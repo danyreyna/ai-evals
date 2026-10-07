@@ -75,25 +75,7 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 - `tests` also includes the iteration `log.md` and the AI assertions in `prompt-tests.yaml`
 - The promptfoo provider and grader at `promptfooconfig.yaml` and `tests/prompt-tests.yaml` are configured to use the local Claude Code instance.
 
-## Promptfoo prompt evaluation
-
-### Quick start
-
-1. Edit `promptfooconfig.yaml` to customize prompts, providers, and test cases.
-
-2. Run the evaluation:
-
-```bash
-promptfoo eval
-```
-
-3. View results in your browser:
-
-```bash
-promptfoo view
-```
-
-### Learn more
+## Learn more about promptfoo
 
 - Configuration guide: https://promptfoo.dev/docs/configuration/guide
 - All providers: https://promptfoo.dev/docs/providers
