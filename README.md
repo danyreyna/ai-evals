@@ -48,6 +48,9 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 - This project uses promptfoo.
 - Evaluations are referenced @promptfooconfig.yaml:57
 - Assertions, of types deterministic and agent rubrics, are defined @tests/prompt-tests.yaml
+- There are 8 criteria, each reported as its own metric: `tests_pass`, `method_coverage`, `error_coverage`, `project_conventions`, `scope_discipline`, `mutation_score`, `assertion_quality` and `isolation_determinism`.
+- `mutation_score` injects 8 real bugs into `PaymentsClient` and requires the generated suite to fail on at least 7, so it does not depend on the prompt or the judge rubric wording.
+- The evals were validated before any prompt run: a reference suite passes all of them, a happy-path-only suite fails where it should (see `tests/log.md`).
 - We use the following deterministic, custom JavaScript evaluations:
   - @tests/assertions/conventions.mjs
   - @tests/assertions/error-coverage.mjs
