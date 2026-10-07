@@ -499,7 +499,7 @@ The deterministic `mutation_score` is the independent check. It does not read th
 - `mutation_score` went from 0/10 (v1) to 10/10 in v2, before any constraint mirroring the rubric existed. The jump came from removing the "happy-path" limit, not from rubric wording.
 - After the v6 constraint (the one closest to rubric clause (a)), `mutation_score` stayed at 20/20, and it was 60/60 across the three v7 batches. The rubric-aligned wording did not trade away bug detection.
 
-### Iteration 8: ablation, remove the Role (EXPERIMENT, result pending)
+### Iteration 8: ablation, remove the Role (EXPERIMENT, no detectable effect)
 
 **Prompt:** `tests/prompts/prompt-to-test-v8.md` is v7 with the `# Role` section deleted and nothing else changed. The shipped prompt stays `prompt-to-test.md` (= v7) unless this result says otherwise. **Eval:** unchanged, same hardened judge as v7.
 
@@ -547,7 +547,43 @@ EVAL_SNAPSHOT_SUBDIR=v8-no-role bun run eval --repeat 20 \
 
 Assertions, rubrics and thresholds are unchanged.
 
-**Result:** pending. Fill in the per-metric table, the failures, the judge score range and the reasoning once the run finishes.
+**Result (20 runs, `tests/evaluations/results-v8-no-role.json`):** overall **20/20 (100%)**. Cost 2.08M agent tokens plus 1.28M judge tokens. All 8 metrics 20/20, 0 judge parse failures. `results.json` was not modified by the run. By the decision rule this is the "19/20 or better" row: **no detectable effect of the Role on any criterion**.
+
+| Metric                | Predicted | v7 pooled (60 runs) | v8, no Role (20 runs) |
+| --------------------- | --------- | ------------------- | --------------------- |
+| tests_pass            | 20/20     | 60/60               | 20/20                 |
+| method_coverage       | 20/20     | 60/60               | 20/20                 |
+| error_coverage        | 20/20     | 60/60               | 20/20                 |
+| project_conventions   | 20/20     | 60/60               | 20/20                 |
+| scope_discipline      | 20/20     | 60/60               | 20/20                 |
+| mutation_score        | 20/20     | 60/60               | 20/20                 |
+| assertion_quality     | 19 to 20  | 60/60               | 20/20                 |
+| isolation_determinism | 20/20     | 60/60               | 20/20                 |
+
+**Secondary check, judge score distribution (`assertion_quality`):**
+
+| Version   | Runs | Mean  | Min  | Runs below 1.0 |
+| --------- | ---- | ----- | ---- | -------------- |
+| v7 pooled | 60   | 0.968 | 0.95 | 39             |
+| v8        | 20   | 0.993 | 0.90 | 2              |
+
+The v8 mean is higher, so there is no sign of eroding margin overall. One run (run 12) scored exactly 0.9, the pass threshold. The judge cited a test, `PaymentsApiError is an Error subclass`, that checks only `toBeInstanceOf` and asserts neither status nor code. That is the same loophole shape as v2 to v5, so the Constraints still guard it, but it is the closest any run has come to failing since v7. `isolation_determinism` was 1.0 in all 20 runs.
+
+**Suite shapes (generated files, rough counts):**
+
+| Version        | Suites | `server.use` (handler overrides) | `.catch(` | Tests per suite |
+| -------------- | ------ | -------------------------------- | --------- | --------------- |
+| v7 (3 batches) | 60     | 11, 14 and 16 of 20              | 0         | about 40        |
+| v8, no Role    | 20     | 4 of 20                          | 0         | about 33        |
+
+- **The suites did change shape without the Role.** They shrank from about 40 tests to about 33, and handler overrides
+  dropped from roughly 14 of 20 suites to 4 of 20. The Role plausibly pushes the model toward more wire-level tests.
+
+**Reasoning:** the hypothesis held on every pass/fail criterion. The ablation is a real difference in behavior, though: without the Role the suites are shorter (about 33 tests against about 40) and use far fewer handler overrides (4 of 20 against roughly 14 of 20). The overrides are what let a test inspect the outgoing request, so the Role ("tests that fail when the client's behavior breaks") plausibly nudges the model toward more wire-level tests. No criterion depends on that nudge, because `mutation_score` stayed 20/20: the header and body mutants are also caught through the real mock server (401 on a bad key, 400 on a dropped body), as predicted in iteration 6. The caveat is sample size. 20 runs can only detect a large effect (see the decision rule), so this shows the Role is not needed to reach the target, not that it does nothing.
+
+**Consequence for the load-bearing claim:** the Role is framing for the purposes of the 8 criteria. The honest ratio is **9 of 10 (90%)**, which meets the bar. The Context row (row 6) is also mapped by plausibility rather than measurement: the agent can discover those files by exploring, and v8 left Context in place, so this run does not test it. If a reviewer discounts both rows 1 and 6 the ratio would be 8 of 10 (80%). An ablation of Context would be the next experiment if that matters.
+
+**Decision:** the shipped prompt stays `prompt-to-test.md` (= v7), Role included, because the exercise asks for RTCC structure and the Role costs one line without hurting any metric. v8 is evidence, not a replacement.
 
 ## Final summary
 
@@ -562,15 +598,16 @@ Assertions, rubrics and thresholds are unchanged.
 | v6      | forbid swallowed rejections, request-only tests | 20   | 17/20 (3 judge parse failures) |
 | v7      | same prompt, hardened judge output format       | 20   | 20/20                          |
 | v7      | repetitions 2 and 3, nothing changed            | 40   | 40/40 (60/60 pooled)           |
+| v8      | ablation: Role removed, experiment only         | 20   | 20/20 (shipped prompt is v7)   |
 
 **Final exercise requirements check:**
 
-| Requirement                               | Status                                              |
-| ----------------------------------------- | --------------------------------------------------- |
-| Prompt in RTCC, deliberate design         | Met                                                 |
-| At least 90% of instructions load-bearing | Met: 10/10 (9/10 if the Role mapping is discounted) |
-| At least 3 distinct criteria              | Met: 8                                              |
-| 95%+ achievable on mid-tier models        | Met: 60/60 over three 20-run batches on Sonnet      |
-| Clear pass/fail thresholds                | Met                                                 |
-| At least 2 iterations with full records   | Met: 7 iterations plus two replications             |
-| Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 to v7 Refactor            |
+| Requirement                               | Status                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Prompt in RTCC, deliberate design         | Met                                                                                               |
+| At least 90% of instructions load-bearing | Met: 9/10 conservative (v8 ablation: the Role showed no effect on any criterion), 10/10 by design |
+| At least 3 distinct criteria              | Met: 8                                                                                            |
+| 95%+ achievable on mid-tier models        | Met: 60/60 over three 20-run batches on Sonnet                                                    |
+| Clear pass/fail thresholds                | Met                                                                                               |
+| At least 2 iterations with full records   | Met: 7 iterations, two replications and one ablation                                              |
+| Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 to v7 Refactor                                                          |
