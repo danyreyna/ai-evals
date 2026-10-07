@@ -40,7 +40,7 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 
 ### 2. The Evaluations
 
-- This project uses prompt foo.
+- This project uses promptfoo.
 - Evaluations are referenced @promptfooconfig.yaml:57
 - Assertions, of types deterministic and agent rubrics, are defined @tests/prompt-tests.yaml
 - We use the following deterministic, custom JavaScript evaluations:
