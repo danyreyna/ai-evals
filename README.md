@@ -12,6 +12,10 @@ To run evaluations:
 bun run eval
 ```
 
+Run it in a separate terminal, not inside a Claude Code session.
+`src/` must be committed and clean first, because the eval resets it with git before every run.
+20 runs take about 25 minutes.
+
 To view results:
 
 ```bash
