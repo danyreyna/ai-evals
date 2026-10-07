@@ -22,6 +22,24 @@ To view results:
 bun run view
 ```
 
+## Results at a glance
+
+The task: ask Claude Code (Sonnet) to write `src/payments.test.ts` for `PaymentsClient`. A run passes only if all 8 criteria pass. The target is 95% of runs.
+
+| Prompt | Change                                               | Runs | Overall                                 |
+| ------ | ---------------------------------------------------- | ---- | --------------------------------------- |
+| v1     | Baseline, happy path only (Red)                      | 10   | 0/10                                    |
+| v2     | Add error responses (Green)                          | 10   | 9/10                                    |
+| v3, v4 | RTCC structure, status and code rule, close loophole | 10   | 9/10, then 10/10 (19/20 over 20 runs)   |
+| v5, v6 | Role rewrite, forbid swallowed rejections            | 20   | 16/20, then 17/20 (3 judge parse fails) |
+| v7     | Same prompt as v6, hardened judge output format      | 60   | **60/60** over three 20-run batches     |
+| v8     | Ablation: v7 without the Role (evidence only)        | 20   | 20/20                                   |
+
+- The final prompt is v7. v8 is an experiment and does not replace it.
+- 60/60 supports "at least 95%" at 95% confidence (one-sided lower bound 95.1%).
+- Load-bearing instructions: 10 of 10 by design, 9 of 10 after the v8 ablation showed the Role has no effect on any pass/fail criterion. The 90% bar is met either way.
+- Everything runs on Sonnet (agent and judge). No frontier model is needed.
+
 This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
 ## Claude Code
