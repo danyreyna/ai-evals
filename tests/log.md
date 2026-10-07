@@ -443,4 +443,44 @@ A judge parse failure like run 18 can still cost one run, so 19/20 is the realis
 
 Parse failures expected: 0. If one still occurs, the next step is to inspect the raw judge response rather than rerun.
 
-**Result:** pending.
+**Result (20 runs, `tests/evaluations/results-v7.json`):** overall **20/20 (100%)**. Cost 3.13M agent tokens plus 1.29M judge tokens, 25.0 min. All 8 metrics 20/20, and 0 parse failures.
+
+| Metric                | Predicted | v6 (as measured) | v7    |
+| --------------------- | --------- | ---------------- | ----- |
+| tests_pass            | 20/20     | 20/20            | 20/20 |
+| method_coverage       | 20/20     | 20/20            | 20/20 |
+| error_coverage        | 20/20     | 20/20            | 20/20 |
+| project_conventions   | 20/20     | 20/20            | 20/20 |
+| scope_discipline      | 20/20     | 20/20            | 20/20 |
+| mutation_score        | 20/20     | 20/20            | 20/20 |
+| assertion_quality     | 18 to 20  | 19/20            | 20/20 |
+| isolation_determinism | 19 to 20  | 18/20            | 20/20 |
+
+**Reasoning:** the hypothesis held. Asking for a JSON-only reply removed the parse failures (3/20 in v6, 0/20 in v7) without moving the grading bar, and the prompt was byte-identical to v6 (`cmp` confirmed). The judge scores show real margin rather than threshold-hugging: `isolation_determinism` was 1.0 in all 20 runs, and `assertion_quality` ranged 0.95 to 1.0 against a 0.9 threshold, with the lowest at 0.95 in 11 runs. The suite shapes also stayed consistent with v6: swallowed-catch tests in 0/20 suites, handler overrides in 11/20 (v6: 8/20), and the judge no longer penalizes them because the v6 rule makes those tests assert the returned value.
+
+**Honest read of the evidence:** v6 and v7 together are the same prompt over 40 runs. Substantively, 37 of 37 parseable judgments passed and the overall measured rate is 37/40 (92.5%), where all 3 misses were infrastructure. Under the hardened judge it is 20/20. A single 20/20 does not prove a 95% true rate (a 90% true rate still produces 20/20 about 12% of the time), but it meets the exercise bar with margin, and no remaining failure mode has been observed in the last 37 judged runs.
+
+## Final summary
+
+| Version | Change                                          | Runs | Overall                        |
+| ------- | ----------------------------------------------- | ---- | ------------------------------ |
+| v1      | baseline, happy path only                       | 10   | 0/10                           |
+| v2      | add error responses                             | 10   | 9/10                           |
+| v3      | RTCC and status+code rule                       | 10   | 9/10                           |
+| v4      | close the message-only loophole                 | 10   | 10/10                          |
+| v4      | confirmation                                    | 20   | 19/20                          |
+| v5      | Role rewritten to be load-bearing               | 20   | 16/20                          |
+| v6      | forbid swallowed rejections, request-only tests | 20   | 17/20 (3 judge parse failures) |
+| v6      | same prompt, hardened judge output format       | 20   | 20/20                          |
+
+**Final exercise requirements check:**
+
+| Requirement                               | Status                                              |
+| ----------------------------------------- | --------------------------------------------------- |
+| Prompt in RTCC, deliberate design         | Met                                                 |
+| At least 90% of instructions load-bearing | Met: 10/10 (9/10 if the Role mapping is discounted) |
+| At least 3 distinct criteria              | Met: 8                                              |
+| 95%+ achievable on mid-tier models        | Met: 20/20 on Sonnet (generation and judging)       |
+| Clear pass/fail thresholds                | Met                                                 |
+| At least 2 iterations with full records   | Met: 7 iterations plus confirmation                 |
+| Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 to v7 Refactor            |
