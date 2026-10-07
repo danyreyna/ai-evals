@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,8 +34,16 @@ export function extensionHook(hookName) {
         `Refusing to start: src/ has uncommitted changes and this eval resets src/ between runs.\n${dirty}\nCommit them, or run "git checkout HEAD -- src && git clean -fd src" if they are leftovers.`,
       );
     }
-    rmSync(SNAPSHOT_DIR, { recursive: true, force: true });
+    /*
+     * Clear stale generated files.
+     * This runs in the `beforeAll` hook so it only removes previous leftovers before starting.
+     */
     mkdirSync(SNAPSHOT_DIR, { recursive: true });
+    for (const file of readdirSync(SNAPSHOT_DIR)) {
+      if (/^run-\d+\.test\.ts$/.test(file)) {
+        rmSync(path.join(SNAPSHOT_DIR, file));
+      }
+    }
   }
 
   if (hookName === "beforeEach") {
