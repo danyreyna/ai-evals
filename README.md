@@ -87,7 +87,7 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 promptfoo eval
 ```
 
-4. View results in your browser:
+3. View results in your browser:
 
 ```bash
 promptfoo view
