@@ -416,3 +416,31 @@ A judge parse failure like run 18 can still cost one run, so 19/20 is the realis
 **Reasoning:** the hypothesis held on the prompt side. Swallowed-catch tests dropped from 5/20 suites (v5) to 0/20, handler-override tests from 13/20 to 8/20, and no judge cited either shape. `mutation_score` stayed 20/20, so the "never assert only on a captured request" clause did not cost mutant kills. `assertion_quality` went from 16/20 to 19/20, and the one miss is a parse failure. The prediction missed on overall (17 vs 18 to 20) only because of the judge infrastructure: parse failures went from 1/20 in v5 to 3/20 in v6, and v6 is the first version where a parse failure hit `isolation_determinism`. I did not rerun, since a rerun that discards unfavourable runs would invalidate the measurement.
 
 **Status:** the prompt is no longer the limiting factor. The remaining gap is the measuring instrument: the two `agent-rubric` assertions intermittently return output that promptfoo cannot parse as JSON. Fixing that is a change to the eval, not to the prompt, so it needs its own documented step and a re-baseline.
+
+### Iteration 7: harden the judge output format (eval change, prompt stays v6)
+
+**Prompt:** unchanged, `tests/prompts/prompt-to-test-v6.md`. **Eval changed:** `tests/prompt-tests.yaml`, both `agent-rubric` assertions.
+
+**Baseline (v6, 20 runs):** 17/20 as measured. All 3 failures were judge parse failures ("Could not extract JSON from agent-rubric response"): runs 5 and 18 on `isolation_determinism`, run 19 on `assertion_quality`. v5 had 1 such failure in 20 runs. No judge returned a substantive score below the threshold in v6.
+
+**Hypothesis:** the judge is an agent with file tools, so its final message is sometimes prose or wrapped text that promptfoo cannot parse. Ending each rubric with an explicit instruction to reply with only `{"pass", "score", "reason"}` removes the ambiguity, so parse failures should drop to 0. Scoring criteria and the 0.9 threshold are untouched, so the measuring bar does not move; only the output envelope does. This is an instrument fix, so it must not be read as a prompt improvement.
+
+**Comparability caveat:** the rubric text now differs from the one used for v1 to v6. Earlier results stay valid as recorded, but v7 is the first run under the hardened judge and is the number to quote.
+
+**Prediction (written before running, `bun run eval --repeat 20`):**
+
+| Metric                    | Expected pass rate |
+| ------------------------- | ------------------ |
+| tests_pass                | 20/20              |
+| method_coverage           | 20/20              |
+| error_coverage            | 20/20              |
+| project_conventions       | 20/20              |
+| scope_discipline          | 20/20              |
+| mutation_score            | 20/20              |
+| assertion_quality         | 18 to 20 of 20     |
+| isolation_determinism     | 19 to 20 of 20     |
+| **Overall run pass rate** | **18 to 20 of 20** |
+
+Parse failures expected: 0. If one still occurs, the next step is to inspect the raw judge response rather than rerun.
+
+**Result:** pending.
