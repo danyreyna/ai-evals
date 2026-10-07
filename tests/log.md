@@ -460,6 +460,27 @@ Parse failures expected: 0. If one still occurs, the next step is to inspect the
 
 **Honest read of the evidence:** v6 and v7 together are the same prompt over 40 runs. Substantively, 37 of 37 parseable judgments passed and the overall measured rate is 37/40 (92.5%), where all 3 misses were infrastructure. Under the hardened judge it is 20/20. A single 20/20 does not prove a 95% true rate (a 90% true rate still produces 20/20 about 12% of the time), but it meets the exercise bar with margin, and no remaining failure mode has been observed in the last 37 judged runs.
 
+### Iteration 7 confirmation: 20 more runs, nothing changed
+
+**Command:** `bun run eval --repeat 20` with the v7 prompt and the hardened judge, both unchanged (`tests/evaluations/results-v7-confirm.json`). Cost 2.53M agent tokens plus 1.34M judge tokens, 23.5 min. This was run to add evidence, not to fix anything, and the pass line was set before the run: 38/40 pooled.
+
+**Result:** overall **20/20 (100%)**, with all 8 metrics 20/20 and 0 parse failures. Pooled with the first v7 batch, the result is **40/40 (100%)**.
+
+| Metric                | v7 batch 1 | v7 confirm | Pooled |
+| --------------------- | ---------- | ---------- | ------ |
+| tests_pass            | 20/20      | 20/20      | 40/40  |
+| method_coverage       | 20/20      | 20/20      | 40/40  |
+| error_coverage        | 20/20      | 20/20      | 40/40  |
+| project_conventions   | 20/20      | 20/20      | 40/40  |
+| scope_discipline      | 20/20      | 20/20      | 40/40  |
+| mutation_score        | 20/20      | 20/20      | 40/40  |
+| assertion_quality     | 20/20      | 20/20      | 40/40  |
+| isolation_determinism | 20/20      | 20/20      | 40/40  |
+
+**Judge margins:** `isolation_determinism` was 1.0 in all 20 runs. `assertion_quality` ranged 0.95 to 1.0 (lowest 0.95, 14 runs below 1.0), against a 0.9 threshold, matching batch 1 (lowest 0.95, 11 runs below 1.0). No run came within 0.05 of failing.
+
+**Reasoning:** the second batch is a replication of v7 under identical conditions, and it reproduced the result, including the judge score distribution. This is the evidence the 20-run result lacked: one 20/20 can come from a prompt with a true rate near 90% (about 12% of the time), but 40/40 does so only about 1.5% of the time at a true rate of 90%, and about 13% at 95%. A one-sided 95% lower bound on the true rate for 40/40 is 0.05^(1/40), which is 92.8%. So the data says the true rate is very likely above 90%, and no observation contradicts 95%, but 40 runs cannot formally prove 95% (that would take 59 straight passes).
+
 ## Final summary
 
 | Version | Change                                          | Runs | Overall                        |
