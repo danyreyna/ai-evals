@@ -56,6 +56,9 @@
         (toBeDefined, toBeTruthy, typeof checks) or only that an error was thrown.
         Score 0.0 if the file is missing, the tests are mostly trivial, or failure paths are not asserted.
         Return the score and name the weakest test in your reason.
+
+        Your final message must be ONLY this JSON object, with no text before or after it and no code fence:
+        {"pass": <true if score >= 0.9, else false>, "score": <number from 0 to 1>, "reason": "<your reason>"}
       provider: &grader
         id: anthropic:claude-agent-sdk
         config:
@@ -89,4 +92,7 @@
         Score 0.5 if exactly one of (a), (b), (c) is violated in one or two tests.
         Score 0.0 if the file is missing or the violations are widespread.
         Name the violating test in your reason when the score is below 1.0.
+
+        Your final message must be ONLY this JSON object, with no text before or after it and no code fence:
+        {"pass": <true if score >= 0.9, else false>, "score": <number from 0 to 1>, "reason": "<your reason>"}
       provider: *grader
