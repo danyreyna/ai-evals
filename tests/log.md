@@ -57,20 +57,22 @@ The two agent-rubric criteria were not validated offline because they need a mod
 
 Each instruction in a prompt must serve at least one criterion. This matrix is updated with every version. Target: at least 90% of instructions mapped.
 
-Matrix for the final prompt (v4). An instruction is counted as load-bearing if removing it would plausibly cause at least one metric to fail.
+Matrix for the current prompt (v6). An instruction is counted as load-bearing if removing it would plausibly cause at least one metric to fail. The v4 matrix had 7 of 8 mapped (87.5%) because the Role was framing only; v5 rewrote the Role to state an outcome, and v6 added the last two rows.
 
-| #   | Instruction                                                   | Serves                                     |
-| --- | ------------------------------------------------------------- | ------------------------------------------ |
-| 1   | Role: "You are a TypeScript test engineer."                   | none directly (framing only)               |
-| 2   | Write tests for `PaymentsClient`                              | tests_pass, method_coverage                |
-| 3   | in `src/payments.test.ts`                                     | scope_discipline, tests_pass               |
-| 4   | Cover the happy path of every method                          | method_coverage, assertion_quality         |
-| 5   | and the error responses the mock server can return            | error_coverage, mutation_score             |
-| 6   | Context: client in `src/index.ts`, mock server in handlers.ts | project_conventions, error_coverage        |
-| 7   | Every test expecting a `PaymentsApiError` asserts status+code | assertion_quality                          |
-| 8   | "even if it also checks the message"                          | assertion_quality (closed the v3 loophole) |
+| #   | Instruction                                                             | Serves                                        |
+| --- | ----------------------------------------------------------------------- | --------------------------------------------- |
+| 1   | Role: "...writes tests that fail when the client's behavior breaks"     | mutation_score, assertion_quality (by design) |
+| 2   | Write tests for `PaymentsClient`                                        | tests_pass, method_coverage                   |
+| 3   | in `src/payments.test.ts`                                               | scope_discipline, tests_pass                  |
+| 4   | Cover the happy path of every method                                    | method_coverage, assertion_quality            |
+| 5   | and the error responses the mock server can return                      | error_coverage, mutation_score                |
+| 6   | Context: client in `src/index.ts`, mock server in handlers.ts           | project_conventions, error_coverage           |
+| 7   | Every test expecting a `PaymentsApiError` asserts status+code           | assertion_quality                             |
+| 8   | "even if it also checks the message"                                    | assertion_quality (closed the v3 loophole)    |
+| 9   | Every test asserts on the returned value or the thrown error            | assertion_quality (rubric clause a)           |
+| 10  | Never swallow a rejection with `.catch`, never assert only on a request | assertion_quality (closed the v5 loopholes)   |
 
-Result: 7 of 8 instructions mapped (87.5%). This is below the 90% target. The only unmapped line is the Role. Dropping it would give 8/8 (100%), but that is an untested prompt change, so it needs its own eval run (see the final entry).
+Result: 10 of 10 instructions mapped (100%). Caveat: row 1 is mapped by design. Iterations 4 to 6 produced no measurement showing the Role helps or hurts, so if a strict reviewer discounts it, the ratio is 9 of 10 (90%), which still meets the bar.
 
 ### Iteration 1: baseline (RED)
 
@@ -396,4 +398,21 @@ a bad key, 400 on a dropped body), so I do not expect a drop.
 
 A judge parse failure like run 18 can still cost one run, so 19/20 is the realistic pass line.
 
-**Result:** pending.
+**Result (20 runs, `tests/evaluations/results-v6.json`):** overall **17/20 (85%) as measured**. Cost 2.85M agent tokens plus 1.43M judge tokens, 24.8 min. All 3 failures are judge parse failures, not quality verdicts.
+
+| Metric                | Predicted | v5    | v6    |
+| --------------------- | --------- | ----- | ----- |
+| tests_pass            | 20/20     | 20/20 | 20/20 |
+| method_coverage       | 20/20     | 20/20 | 20/20 |
+| error_coverage        | 20/20     | 20/20 | 20/20 |
+| project_conventions   | 20/20     | 20/20 | 20/20 |
+| scope_discipline      | 20/20     | 20/20 | 20/20 |
+| mutation_score        | 19 to 20  | 20/20 | 20/20 |
+| assertion_quality     | 18 to 20  | 16/20 | 19/20 |
+| isolation_determinism | 20/20     | 20/20 | 18/20 |
+
+**Failures:** run 5 (`isolation_determinism`), run 18 (`isolation_determinism`) and run 19 (`assertion_quality`) all scored 0 with the reason "Could not extract JSON from agent-rubric response". No judge returned a substantive score below the threshold. Excluding those three runs, the substantive pass rate is 17/17, but the headline metric stays 17/20 because a run whose judge cannot be parsed is not a pass.
+
+**Reasoning:** the hypothesis held on the prompt side. Swallowed-catch tests dropped from 5/20 suites (v5) to 0/20, handler-override tests from 13/20 to 8/20, and no judge cited either shape. `mutation_score` stayed 20/20, so the "never assert only on a captured request" clause did not cost mutant kills. `assertion_quality` went from 16/20 to 19/20, and the one miss is a parse failure. The prediction missed on overall (17 vs 18 to 20) only because of the judge infrastructure: parse failures went from 1/20 in v5 to 3/20 in v6, and v6 is the first version where a parse failure hit `isolation_determinism`. I did not rerun, since a rerun that discards unfavourable runs would invalidate the measurement.
+
+**Status:** the prompt is no longer the limiting factor. The remaining gap is the measuring instrument: the two `agent-rubric` assertions intermittently return output that promptfoo cannot parse as JSON. Fixing that is a change to the eval, not to the prompt, so it needs its own documented step and a re-baseline.
