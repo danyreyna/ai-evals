@@ -57,7 +57,7 @@ The two agent-rubric criteria were not validated offline because they need a mod
 
 Each instruction in a prompt must serve at least one criterion. This matrix is updated with every version. Target: at least 90% of instructions mapped.
 
-Matrix for the current prompt (v6). An instruction is counted as load-bearing if removing it would plausibly cause at least one metric to fail. The v4 matrix had 7 of 8 mapped (87.5%) because the Role was framing only; v5 rewrote the Role to state an outcome, and v6 added the last two rows.
+Matrix for the current prompt. An instruction is counted as load-bearing if removing it would plausibly cause at least one metric to fail. The v4 matrix had 7 of 8 mapped (87.5%) because the Role was framing only; v5 rewrote the Role to state an outcome, and v6 added the last two rows.
 
 | #   | Instruction                                                             | Serves                                        |
 | --- | ----------------------------------------------------------------------- | --------------------------------------------- |
@@ -265,7 +265,7 @@ Write tests for `PaymentsClient` in `src/payments.test.ts`. Cover the happy path
 | assertion_quality     | 19/20     |
 | isolation_determinism | 20/20     |
 
-**Reasoning:** the one failure (run 7, assertion_quality 0.5) came from two supplementary tests (`does not store a payment when creation fails` and `does not change the payment when a refund is rejected`) that go through a `captureError` helper which only checks that a `PaymentsApiError` was thrown. Both are tests that expect a `PaymentsApiError` but skip status and code, so the v4 wording was applied inconsistently once, not misread. Seven iterations of evidence across v1 to v4: 0/10, 9/10, 9/10, 10/10, then 19/20 on the larger sample. The true rate is probably in the low-to-mid 90s, and 19/20 is a pass of the exercise's bar, not a proof of 95%.
+**Reasoning:** the one failure (run 7, assertion_quality 0.5) came from two supplementary tests (`does not store a payment when creation fails` and `does not change the payment when a refund is rejected`) that go through a `captureError` helper which only checks that a `PaymentsApiError` was thrown. Both are tests that expect a `PaymentsApiError` but skip status and code, so the v4 wording was applied inconsistently once, not misread. Five iteration data points of evidence across v1 to v4: 0/10, 9/10, 9/10, 10/10, then 19/20 on the larger sample. The true rate is probably in the low-to-mid 90s, and 19/20 is a pass of the exercise's bar, not a proof of 95%.
 
 **Exercise requirements check:**
 
