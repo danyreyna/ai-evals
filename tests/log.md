@@ -499,6 +499,56 @@ The deterministic `mutation_score` is the independent check. It does not read th
 - `mutation_score` went from 0/10 (v1) to 10/10 in v2, before any constraint mirroring the rubric existed. The jump came from removing the "happy-path" limit, not from rubric wording.
 - After the v6 constraint (the one closest to rubric clause (a)), `mutation_score` stayed at 20/20, and it was 60/60 across the three v7 batches. The rubric-aligned wording did not trade away bug detection.
 
+### Iteration 8: ablation, remove the Role (EXPERIMENT, result pending)
+
+**Prompt:** `tests/prompts/prompt-to-test-v8.md` is v7 with the `# Role` section deleted and nothing else changed. The shipped prompt stays `prompt-to-test.md` (= v7) unless this result says otherwise. **Eval:** unchanged, same hardened judge as v7.
+
+**Baseline (v7, 60 runs over three batches):** 60/60 overall. `assertion_quality` 0.95 to 1.0, `isolation_determinism` 1.0 in every run.
+
+**Why:** the load-bearing matrix credits row 1 (Role) "by design" and iterations 5 to 7 produced no measurement of it. v5 showed the suite shapes did not change when the Role was reworded, which hints it may be inert. An ablation turns the argument into evidence: remove the line and see whether any criterion moves.
+
+**Hypothesis:** the Role has no detectable effect on any of the 8 metrics, because the Task and Constraints already state the behavior the metrics reward. If true, the Role is framing, and the honest load-bearing ratio is 9 of 10 (90%) with the Role discounted.
+
+**Prediction (written before running, `--repeat 20`):**
+
+| Metric                    | Expected pass rate |
+| ------------------------- | ------------------ |
+| tests_pass                | 20/20              |
+| method_coverage           | 20/20              |
+| error_coverage            | 20/20              |
+| project_conventions       | 20/20              |
+| scope_discipline          | 20/20              |
+| mutation_score            | 20/20              |
+| assertion_quality         | 19 to 20 of 20     |
+| isolation_determinism     | 20/20              |
+| **Overall run pass rate** | **19 to 20 of 20** |
+
+**Decision rule (fixed before running).** The comparison is v8 (20 runs) against v7 pooled (60/60). With 0 failures in 60, a one-sided Fisher exact test gives p of about 0.014 for 3 failures in 20 and about 0.06 for 2 in 20, so 20 runs can only detect a large Role effect.
+
+| v8 overall      | Reading                                                                                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 17/20 or worse  | The Role is load-bearing by measurement (p about 0.014 or lower). Row 1 moves from "by design" to "measured". Ratio stays 10/10.                                       |
+| 18/20           | Inconclusive (p about 0.06). Report the ratio as 9/10 and say the Role is neither proven nor disproven.                                                                |
+| 19/20 or better | No detectable effect. The Role stays in the shipped prompt because RTCC requires a Role, but the log reports 9/10 and states that it is framing, not a measured lever. |
+
+Secondary check regardless of the headline: compare the `assertion_quality` score distribution against v7 (0.95 to 1.0), since a Role effect could show as lower margins before it shows as failures.
+
+**How to run (separate terminal, `src/` must be clean):**
+
+```bash
+EVAL_SNAPSHOT_SUBDIR=v8-no-role bun run eval --repeat 20 \
+  --prompts tests/prompts/prompt-to-test-v8.md \
+  -o tests/evaluations/results-v8-no-role.json tests/evaluations/results-v8-no-role.html
+```
+
+`--prompts` overrides the prompt in `promptfooconfig.yaml`, so `prompt-to-test.md` and the current `results.json` are not touched by design. Afterwards confirm that with `git status --short tests/evaluations/results.json tests/evaluations/results.html`. If either shows as modified, restore it with `git checkout -- <file>`. Suites land in `tests/evaluations/generated/v8-no-role/`.
+
+`EVAL_SNAPSHOT_SUBDIR` lets a run write straight into its own subfolder.
+
+Assertions, rubrics and thresholds are unchanged.
+
+**Result:** pending. Fill in the per-metric table, the failures, the judge score range and the reasoning once the run finishes.
+
 ## Final summary
 
 | Version | Change                                          | Runs | Overall                        |
