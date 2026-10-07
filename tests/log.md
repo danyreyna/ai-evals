@@ -11,7 +11,7 @@ bun run eval            # promptfoo eval --no-cache, 10 serial runs (evaluateOpt
 bun run view            # optional: browse tests/evaluations/results.html
 ```
 
-Run it in a separate terminal. The eval writes to `src/payments.test.ts` and resets `src/` with git before every run, so `src/` must be clean (committed) before you start. Generated suites are snapshotted to `tests/evaluations/generated/run-NN.test.ts` for review.
+Run it in a separate terminal. The eval writes to `src/payments.test.ts` and resets `src/` with git before every run, so `src/` must be clean (committed) before you start. Generated suites are snapshotted to `tests/evaluations/generated/<version>/run-NN.test.ts` for review.
 
 For the final confirmation use `bun run eval --repeat 20`. Ten runs only gives 10% resolution, so 95% can only be claimed from 19/20 or better.
 
