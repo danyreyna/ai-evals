@@ -56,6 +56,25 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
 - Iteration log is @tests/log.md
 - It documents prompt and evaluations evolution
 
+### File structure
+
+- `docs/` has a script to download promptfoo's docs from github, for Claude Code to reference when working on AI assertions.
+- `src/` is the working directory the agent under test works.
+  - In this exercise, it's a simple example of a payments server and api client.
+  - The agent will be evaluated on how it writes tests for these.
+- `tests/assertions` contains the custom JavaScript assertions promptfoo uses to evaluate our prompt.
+- `tests/evaluations` contains the output of each promptfoo run.
+  - `tests/evaluations/generated` contains the test file Claude Code writes as part of our evaluation. One file per repetition per iteration.
+  - The results-vN.json and results-vN.html files are promptfoo's output after each iteration.
+  - `results.html` and `results.json` are the current, most recent results. Currently they're the same as `results-v7-repetition-3.html` and `results-v7-repetition-3.json`.
+- `tests/hooks` has a agent working dir hook to:
+  - Reset `src/` between every run.
+  - Take a snapshot of the generated test file, and save it as an artifact under `tests/evaluations/generated`
+- `tests/prompts` has the prompt used for each iteration.
+  - `prompt-to-test.md` is the current, most recent version. Currently it's the same as `prompt-to-test-v7.md`
+- `tests` also includes the iteration `log.md` and the AI assertions in `prompt-tests.yaml`
+- The promptfoo provider and grader at `promptfooconfig.yaml` and `tests/prompt-tests.yaml` are configured to use the local Claude Code instance.
+
 ## Promptfoo prompt evaluation
 
 ### Quick start
