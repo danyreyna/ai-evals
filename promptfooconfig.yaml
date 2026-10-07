@@ -37,7 +37,7 @@ extensions:
 evaluateOptions:
   # Isolate runs since every run writes to the same file.
   maxConcurrency: 1
-  repeat: 10
+  repeat: 20
   timeoutMs: 900000
 
 defaultTest:
