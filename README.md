@@ -37,6 +37,7 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
   - @tests/prompts/prompt-to-test-v5.md
   - @tests/prompts/prompt-to-test-v6.md
   - @tests/prompts/prompt-to-test-v7.md
+  - @tests/prompts/prompt-to-test-v8.md (ablation experiment, v7 without the Role; not the final prompt)
 
 ### 2. The Evaluations
 
