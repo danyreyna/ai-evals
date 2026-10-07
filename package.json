@@ -5,6 +5,7 @@
   "module": "src/index.ts",
   "scripts": {
     "eval": "promptfoo eval --no-cache",
+    "prepare": "cd docs && chmod +x get-promptfoo-docs.sh && ./get-promptfoo-docs.sh && cd ..",
     "view": "promptfoo view"
   },
   "dependencies": {
