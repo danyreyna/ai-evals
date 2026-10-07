@@ -490,6 +490,15 @@ All 8 metrics were 20/20 in every batch, so 60/60 pooled for each, with 0 judge 
 
 **Reasoning:** the replications reproduced the result, including the judge score distribution, under identical conditions. This is the evidence a single 20/20 lacked: a prompt with a true 90% rate produces 60/60 about 0.2% of the time, and a true 95% rate produces it about 4.6% of the time. The one-sided 95% lower bound on the true rate for 60/60 is 0.05^(1/60), which is 95.1%. So 60 straight passes is the first sample size that formally supports "at least 95%" at 95% confidence (the rule of three puts the threshold at 59).
 
+### Design note: constraints mirror the judge rubric
+
+The two Constraints in the final prompt restate the `assertion_quality` rubric: constraint 1 matches clause (b) (status and code on every failure), constraint 2 matches clause (a) (assert on returned values). This is deliberate. Iterations 3 to 6 each added or reworded a constraint after a judge-flagged failure, so the prompt states the rule the instrument was already enforcing.
+
+The deterministic `mutation_score` is the independent check. It does not read the prompt or the rubric, it injects 8 real client bugs and runs the generated suite against each. Two facts from the results support the claim that quality improved and not only the judge score:
+
+- `mutation_score` went from 0/10 (v1) to 10/10 in v2, before any constraint mirroring the rubric existed. The jump came from removing the "happy-path" limit, not from rubric wording.
+- After the v6 constraint (the one closest to rubric clause (a)), `mutation_score` stayed at 20/20, and it was 60/60 across the three v7 batches. The rubric-aligned wording did not trade away bug detection.
+
 ## Final summary
 
 | Version | Change                                          | Runs | Overall                        |
