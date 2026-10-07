@@ -460,26 +460,35 @@ Parse failures expected: 0. If one still occurs, the next step is to inspect the
 
 **Honest read of the evidence:** v6 and v7 together are the same prompt over 40 runs. Substantively, 37 of 37 parseable judgments passed and the overall measured rate is 37/40 (92.5%), where all 3 misses were infrastructure. Under the hardened judge it is 20/20. A single 20/20 does not prove a 95% true rate (a 90% true rate still produces 20/20 about 12% of the time), but it meets the exercise bar with margin, and no remaining failure mode has been observed in the last 37 judged runs.
 
-### Iteration 7 confirmation: 20 more runs, nothing changed
+### Iteration 7 confirmation: 40 more runs, nothing changed
 
-**Command:** `bun run eval --repeat 20` with the v7 prompt and the hardened judge, both unchanged (`tests/evaluations/results-v7-repetition-2.json`). Cost 2.53M agent tokens plus 1.34M judge tokens, 23.5 min. This was run to add evidence, not to fix anything, and the pass line was set before the run: 38/40 pooled.
+Two extra 20-run batches were run with the v7 prompt and the hardened judge both unchanged (`cmp` against `prompt-to-test-v7.md` matched). They add evidence, not fixes. The pass line for the first extra batch was set before running: 38/40 pooled.
 
-**Result:** overall **20/20 (100%)**, with all 8 metrics 20/20 and 0 parse failures. Pooled with the first v7 batch, the result is **40/40 (100%)**.
+| Batch                    | Artifact                                         | Cost (agent + judge tokens), time | Overall          |
+| ------------------------ | ------------------------------------------------ | --------------------------------- | ---------------- |
+| v7 batch 1 (iteration 7) | `tests/evaluations/results-v7.json`              | 3.13M + 1.29M, 25.0 min           | 20/20            |
+| v7 repetition 2          | `tests/evaluations/results-v7-repetition-2.json` | 2.53M + 1.34M, 23.5 min           | 20/20            |
+| v7 repetition 3          | `tests/evaluations/results-v7-repetition-3.json` | 3.34M + 1.29M, 25.9 min           | 20/20            |
+| **Pooled**               |                                                  |                                   | **60/60 (100%)** |
 
-| Metric                | v7 batch 1 | v7 confirm | Pooled |
-| --------------------- | ---------- | ---------- | ------ |
-| tests_pass            | 20/20      | 20/20      | 40/40  |
-| method_coverage       | 20/20      | 20/20      | 40/40  |
-| error_coverage        | 20/20      | 20/20      | 40/40  |
-| project_conventions   | 20/20      | 20/20      | 40/40  |
-| scope_discipline      | 20/20      | 20/20      | 40/40  |
-| mutation_score        | 20/20      | 20/20      | 40/40  |
-| assertion_quality     | 20/20      | 20/20      | 40/40  |
-| isolation_determinism | 20/20      | 20/20      | 40/40  |
+All 8 metrics were 20/20 in every batch, so 60/60 pooled for each, with 0 judge parse failures.
 
-**Judge margins:** `isolation_determinism` was 1.0 in all 20 runs. `assertion_quality` ranged 0.95 to 1.0 (lowest 0.95, 14 runs below 1.0), against a 0.9 threshold, matching batch 1 (lowest 0.95, 11 runs below 1.0). No run came within 0.05 of failing.
+| Metric                | Batch 1 | Rep 2 | Rep 3 | Pooled |
+| --------------------- | ------- | ----- | ----- | ------ |
+| tests_pass            | 20/20   | 20/20 | 20/20 | 60/60  |
+| method_coverage       | 20/20   | 20/20 | 20/20 | 60/60  |
+| error_coverage        | 20/20   | 20/20 | 20/20 | 60/60  |
+| project_conventions   | 20/20   | 20/20 | 20/20 | 60/60  |
+| scope_discipline      | 20/20   | 20/20 | 20/20 | 60/60  |
+| mutation_score        | 20/20   | 20/20 | 20/20 | 60/60  |
+| assertion_quality     | 20/20   | 20/20 | 20/20 | 60/60  |
+| isolation_determinism | 20/20   | 20/20 | 20/20 | 60/60  |
 
-**Reasoning:** the second batch is a replication of v7 under identical conditions, and it reproduced the result, including the judge score distribution. This is the evidence the 20-run result lacked: one 20/20 can come from a prompt with a true rate near 90% (about 12% of the time), but 40/40 does so only about 1.5% of the time at a true rate of 90%, and about 13% at 95%. A one-sided 95% lower bound on the true rate for 40/40 is 0.05^(1/40), which is 92.8%. So the data says the true rate is very likely above 90%, and no observation contradicts 95%, but 40 runs cannot formally prove 95% (that would take 59 straight passes).
+**Judge margins:** `isolation_determinism` was 1.0 in all 60 runs. `assertion_quality` ranged 0.95 to 1.0 in every batch (lowest 0.95, with 11, 14 and 14 runs below 1.0), against a 0.9 threshold. No run came within 0.05 of failing.
+
+**Suite shapes (stable across batches):** swallowed-catch tests in 0/20 suites in each batch; handler-override tests in 11/20, 14/20 and 16/20 suites. The judge did not penalize them in any batch because the v6 rule makes those tests assert the returned value.
+
+**Reasoning:** the replications reproduced the result, including the judge score distribution, under identical conditions. This is the evidence a single 20/20 lacked: a prompt with a true 90% rate produces 60/60 about 0.2% of the time, and a true 95% rate produces it about 4.6% of the time. The one-sided 95% lower bound on the true rate for 60/60 is 0.05^(1/60), which is 95.1%. So 60 straight passes is the first sample size that formally supports "at least 95%" at 95% confidence (the rule of three puts the threshold at 59).
 
 ## Final summary
 
@@ -492,7 +501,8 @@ Parse failures expected: 0. If one still occurs, the next step is to inspect the
 | v4      | confirmation                                    | 20   | 19/20                          |
 | v5      | Role rewritten to be load-bearing               | 20   | 16/20                          |
 | v6      | forbid swallowed rejections, request-only tests | 20   | 17/20 (3 judge parse failures) |
-| v6      | same prompt, hardened judge output format       | 20   | 20/20                          |
+| v7      | same prompt, hardened judge output format       | 20   | 20/20                          |
+| v7      | repetitions 2 and 3, nothing changed            | 40   | 40/40 (60/60 pooled)           |
 
 **Final exercise requirements check:**
 
@@ -501,7 +511,7 @@ Parse failures expected: 0. If one still occurs, the next step is to inspect the
 | Prompt in RTCC, deliberate design         | Met                                                 |
 | At least 90% of instructions load-bearing | Met: 10/10 (9/10 if the Role mapping is discounted) |
 | At least 3 distinct criteria              | Met: 8                                              |
-| 95%+ achievable on mid-tier models        | Met: 20/20 on Sonnet (generation and judging)       |
+| 95%+ achievable on mid-tier models        | Met: 60/60 over three 20-run batches on Sonnet      |
 | Clear pass/fail thresholds                | Met                                                 |
-| At least 2 iterations with full records   | Met: 7 iterations plus confirmation                 |
+| At least 2 iterations with full records   | Met: 7 iterations plus two replications             |
 | Red/Green/Refactor evidence               | Met: v1 Red, v2 Green, v3 to v7 Refactor            |
