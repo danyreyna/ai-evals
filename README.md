@@ -47,6 +47,11 @@ This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) 
   - @tests/assertions/scope.mjs
   - @tests/assertions/tests-pass.mjs
 
+### 3. The Log
+
+- Iteration log is @tests/log.md
+- It documents prompt and evaluations evolution
+
 ## Promptfoo prompt evaluation
 
 ### Quick start
