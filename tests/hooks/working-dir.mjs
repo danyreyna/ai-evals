@@ -4,7 +4,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const SNAPSHOT_DIR = path.join(ROOT, "tests/evaluations/generated");
+/*
+ * Attempt to write snapshots straight into `generated/<subdir>/`,
+ * so a run does not need its files moved by hand afterwards.
+ */
+const SNAPSHOT_DIR = path.join(
+  ROOT,
+  "tests/evaluations/generated",
+  process.env.EVAL_SNAPSHOT_SUBDIR ?? "",
+);
 const TEST_FILE = path.join(ROOT, "src/payments.test.ts");
 
 function git(...args) {
