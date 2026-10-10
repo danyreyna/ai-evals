@@ -33,6 +33,6 @@
           apiKeyRequired: false
           # Don't add evaluations transcripts to Claude Code at ~/.claude/projects/
           persist_session: false
-          model: sonnet
+          model: haiku
           effort: medium
           working_dir: ./src
