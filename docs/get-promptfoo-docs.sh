@@ -14,7 +14,7 @@ if [ -d "promptfoo" ]; then
     exit 0 
 fi
 
-git clone https://github.com/promptfoo/promptfoo.git && cd promptfoo && git checkout 0.124.0 && rm -rf .git && cd ..
+git clone https://github.com/promptfoo/promptfoo.git && cd promptfoo && git checkout 0.124.1 && rm -rf .git && cd ..
 echo "Cloned promptfoo repo."
 mv promptfoo promptfoo-repo && mv promptfoo-repo/site/docs promptfoo && rm -rf promptfoo-repo
 echo "Extracted docs."
