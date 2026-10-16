@@ -15,7 +15,7 @@ providers:
       # Prevent saving evaluations' transcripts to local directory at ~/.claude/projects/
       persist_session: false
       model: haiku
-      effort: high
+      effort: xhigh
       working_dir: ./src
       ask_user_question:
         behavior: first_option
@@ -31,7 +31,7 @@ defaultTest:
         # Prevent saving evaluations' transcripts to local directory at ~/.claude/projects/
         persist_session: false
         model: haiku
-        effort: medium
+        effort: xhigh
 
 tests:
   - file://tests/prompt-tests.yaml

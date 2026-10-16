@@ -34,5 +34,5 @@
           # Prevent saving evaluations' transcripts to local directory at ~/.claude/projects/
           persist_session: false
           model: haiku
-          effort: medium
+          effort: xhigh
           working_dir: ./src
