@@ -17,6 +17,7 @@ providers:
       model: haiku
       effort: xhigh
       working_dir: ./working-dir
+      disallowed_tools: ["WebFetch", "WebSearch"]
       ask_user_question:
         behavior: first_option
 
