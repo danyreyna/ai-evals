@@ -18,6 +18,7 @@ providers:
       effort: xhigh
       working_dir: ./working-dir
       disallowed_tools: ["WebFetch", "WebSearch"]
+      max_budget_usd: 0.50
       ask_user_question:
         behavior: first_option
 
