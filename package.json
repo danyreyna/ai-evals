@@ -2,7 +2,7 @@
   "name": "ai-evals",
   "private": true,
   "type": "module",
-  "module": "src/index.ts",
+  "module": "working-dir/index.ts",
   "scripts": {
     "eval": "promptfoo eval --no-cache",
     "prepare": "cd docs && chmod +x get-promptfoo-docs.sh && ./get-promptfoo-docs.sh && cd ..",

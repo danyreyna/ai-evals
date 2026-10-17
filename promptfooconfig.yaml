@@ -16,7 +16,7 @@ providers:
       persist_session: false
       model: haiku
       effort: xhigh
-      working_dir: ./src
+      working_dir: ./working-dir
       ask_user_question:
         behavior: first_option
 

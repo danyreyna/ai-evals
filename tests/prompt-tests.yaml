@@ -35,4 +35,4 @@
           persist_session: false
           model: haiku
           effort: xhigh
-          working_dir: ./src
+          working_dir: ./working-dir
