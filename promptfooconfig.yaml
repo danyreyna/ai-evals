@@ -22,6 +22,9 @@ providers:
       ask_user_question:
         behavior: first_option
 
+evaluateOptions:
+  repeat: 20
+
 defaultTest:
   options:
     # Default grader. Text-only: no `working_dir` and no `tools`, so it only judges the output.
