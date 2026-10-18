@@ -14,7 +14,7 @@ The prompt may not exist yet, since evaluations usually go first.
 
 ## Context
 
-1. Read @docs/stages/stage3.md in full. This section is the most important: `Requirements > 3 required artifacts > 2. The Evaluations`.
+1. Read @docs/ai-stages/wave2/1-stage3.md in full. This section is the most important: `Requirements > 3 required artifacts > 2. The Evaluations`.
 2. Read the example tests in `tests/prompt-tests.yaml`. They are created by the `promptfoo init`
    boilerplate and are relevant as implementation reference.
 3. Consult the promptfoo docs as needed: `docs/promptfoo/configuration/expected-outputs/index.md`,
@@ -27,14 +27,14 @@ The prompt may not exist yet, since evaluations usually go first.
    <prompt_task>$ARGUMENTS</prompt_task>
 2. Generate promptfoo tests and assertions for the task.
    Remember: You MUST adhere to the `Requirements > 3 required artifacts > 2. The Evaluations` section
-   of `docs/stages/stage3.md`
+   of `docs/ai-stages/wave2/1-stage3.md`
 3. If needed, write `.mjs` assertions to `tests/assertions/` and extension hooks to `tests/hooks/`
 4. Save the new tests at `tests/prompt-tests.yaml`. Replace the existing example tests in the file,
    these boilerplate tests are not relevant for the prompt to test.
 
 ## Constraints
 
-1. You MUST adhere to the `Requirements > 3 required artifacts > 2. The Evaluations` section of `docs/stages/stage3.md`
+1. You MUST adhere to the `Requirements > 3 required artifacts > 2. The Evaluations` section of `docs/ai-stages/wave2/1-stage3.md`
 2. Write at least 15 evaluations in total, including deterministic and "LLM as a judge" evaluations.
 3. Prefer deterministic evaluations, and prefer built-in types over custom code. Use `javascript` only when no built-in
    type can perform the check. Put custom assertions in `tests/assertions/` as ES modules with a `.mjs` extension,
