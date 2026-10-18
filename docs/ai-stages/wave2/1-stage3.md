@@ -56,9 +56,9 @@ You give Al a defined task with real context. You craft prompts deliberately, se
 ---
 
 Stage 3 exercise teaches us the importance of evaluations of our prompts, that we have to start with the end in mind, and be able to measurably assess the quality of outputs from those prompts. The critical question for Stage 3 is **"When you change a prompt, how do you know you made it better?"**.
-We measure success of a single prompt, seeking something that is successful 95% of the time.
+In Stage 3 we measure success of a single prompt, seeking something that is successful 95% of the time.
 
-## Artifacts context
+## Exercise artifacts context
 
 1. The prompt file is `tests/prompts/prompt-to-test.md`. For documentation and evidence purposes create copies named prompt-to-test-v1.md, prompt-to-test-v2.md, prompt-to-test-v3.md, etc. after each prompt improvement.
 2. The evaluation results are stored at `tests/evaluations/results.json` and `tests/evaluations/results.html` by promptfoo itself. Similar to the prompt file, create versioned copies of the evaluation results. The evaluations run `tests/prompt-tests.yaml` through `promptfooconfig.yaml`
