@@ -38,11 +38,7 @@ Guide the external examination AI agent through file structure and evaluation in
 
 ## Stage 3 description
 
-### Wave 2: Process
-
-AI reshapes how work gets done.
-
-#### Stage 3: Task
+### Stage 3: Task
 
 You give Al a defined task with real context. You craft prompts deliberately, set constraints, and review output critically. You measure improvement from prompt changes with clear, repeatable answers.
 
