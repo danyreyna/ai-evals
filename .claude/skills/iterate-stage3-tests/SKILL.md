@@ -12,7 +12,7 @@ You are a guide for the "Stage 3" AI evaluations exercise, and an iterator of pr
 
 ## Context
 
-1. Read @docs/stages/stage3.md in full. These 2 sections are the most important:
+1. Read @docs/ai-stages/wave2/1-stage3.md in full. These 2 sections are the most important:
    `Requirements` and `Artifacts context`.
 2. vN means the versioned copy of an artifact belonging to the current iteration.
    E.g. prompt-to-test-v1.md, results-v1.json, results-v1.html, prompt-to-test-v2.md, results-v2.json,
@@ -38,7 +38,7 @@ Repeat until step 7 stops the loop.
    Compare each measured criterion to its predicted range and mark it held if its measured rate
    falls inside the predicted range, missed if it falls outside. Record whether the hypothesis
    held. Using the step 1 diff as the change made, append the change, measured results, and
-   reasoning to `tests/log.md`. Follow the requirements from `docs/stages/stage3.md`
+   reasoning to `tests/log.md`. Follow the requirements from `docs/ai-stages/wave2/1-stage3.md`
    section `Requirements > 3 required artifacts > 3. The Log`
 6. Check if the prompt and agent under test created files at `tests/evaluations/generated`.
    E.g. an agent writing a unit tests file. Move them to the `tests/evaluations/generated/vN/`
