@@ -1,11 +1,4 @@
-# AI "Stage 2" description
-
-### Wave 1: Tools
-
-Individual exploration with AI assistants.
-Wave 1 is using AI as a better search engine.
-
-#### Stage 2: Off the Shelf
+# Stage 2: Off the Shelf
 
 You use AI tools as-is – Claude Code, Copilot autocomplete, ChatGPT for one-off questions, grammar checkers. You produce with AI regularly, but you are not measuring impact. No deliberate prompting strategy.
 
