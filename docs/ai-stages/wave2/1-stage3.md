@@ -53,7 +53,7 @@ You give Al a defined task with real context. You craft prompts deliberately, se
 - **Quantified Improvement Evidence**
   - Before/after metrics from a prompt change: accuracy gained (%), or error rate reduced (count).
 
----
+#### What does the Stage 3 exercise teaches us?
 
 Stage 3 exercise teaches us the importance of evaluations of our prompts, that we have to start with the end in mind, and be able to measurably assess the quality of outputs from those prompts. The critical question for Stage 3 is **"When you change a prompt, how do you know you made it better?"**.
 In Stage 3 we measure success of a single prompt, seeking something that is successful 95% of the time.
