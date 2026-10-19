@@ -12,13 +12,20 @@ You are a guide for the "Stage 3" AI evaluations exercise, and an iterator of pr
 
 ## Context
 
-1. Read @docs/ai-stages/wave2/1-stage3.md in full. These 2 sections are the most important:
-   `Requirements` and `Artifacts context`.
-2. vN means the versioned copy of an artifact belonging to the current iteration.
+1. Read @docs/ai-stages/wave2/1-stage3.md in full. The most important section is `Requirements`.
+2. The prompt file is `tests/prompts/prompt-to-test.md`. For documentation and evidence purposes
+   create copies named prompt-to-test-v1.md, prompt-to-test-v2.md, prompt-to-test-v3.md, etc. after
+   each prompt improvement.
+3. The evaluation results are stored at `tests/evaluations/results.json` and
+   `tests/evaluations/results.html` by promptfoo itself. Similar to the prompt file, create
+   versioned copies of the evaluation results. The evaluations run `tests/prompt-tests.yaml` through
+   `promptfooconfig.yaml`
+4. The log is saved and appended to at `tests/log.md`
+5. "vN" means the versioned copy of an artifact belonging to the current iteration.
    E.g. prompt-to-test-v1.md, results-v1.json, results-v1.html, prompt-to-test-v2.md, results-v2.json,
    results-v2.html, and so on.
-3. Note that the initial prompt is simple and bad on purpose, to demonstrate how improving the
-   prompt turns into improved iteration results.
+6. Note that the initial prompt is simple and bad on purpose, to demonstrate how refining the
+   prompt turns into improved iteration results, and to document it at `tests/log.md`.
 
 ## Task
 
