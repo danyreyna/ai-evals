@@ -2,7 +2,7 @@
 
 # Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
 
-description: "Prompt evaluation and iteration exercise for a given task."
+description: "TODO"
 
 prompts:
   - file://tests/prompts/prompt-to-test.md
