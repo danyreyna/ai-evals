@@ -43,7 +43,7 @@ Repeat until step 7 stops the loop.
 6. Check if the prompt and agent under test created files at `tests/evaluations/generated`.
    E.g. an agent writing a unit tests file. Move them to the `tests/evaluations/generated/vN/`
    directory where vN corresponds to the current iteration number.
-7. Stop the loop if the overall pass rate in results.json is at least 95%, and at least 2 iterations are measured.
+7. Stop the loop if the overall pass rate in results.json is at least 95%, and at least 3 iterations are measured.
 8. Ask the user to refine the candidate prompt at `tests/prompts/prompt-to-test.md`. Wait until the user tells you it's done.
 
 ## Constraints
