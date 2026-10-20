@@ -36,6 +36,8 @@ defaultTest:
         apiKeyRequired: false
         # Prevent saving evaluations' transcripts to local directory at ~/.claude/projects/
         persist_session: false
+        # Disable LLM request/response caching
+        bustCache: true
         custom_system_prompt: ""
         model: haiku
         effort: xhigh
