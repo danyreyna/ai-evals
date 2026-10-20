@@ -37,16 +37,8 @@ The prompt may not exist yet, since evaluations usually go first.
 3. Prefer deterministic evaluations, and prefer built-in types over custom code. Use `javascript` only when no built-in
    type can perform the check. Put custom assertions in `tests/assertions/` as ES modules with a `.mjs` extension,
    exporting a default function that returns `{ pass, score, reason }`.
-4. Write one or two "LLM as a judge" evaluations. Use `type: llm-rubric` when the judge evaluates the output text. Use
-   `type: agent-rubric` when the judge must inspect an artifact. Every `llm-rubric` or `agent-rubric` judge must end its
-   `value` with the suffix below, replace `<the_evaluations_threshold>` with the assertion's `threshold`:
-
-   Suffix, copied exactly:
-
-```
-Your final message must be ONLY this JSON object, with no text before or after it and no code fence:
-{"pass": <true if score >= <the_evaluations_threshold>, else false>, "score": <number from 0 to 1>, "reason": "<your reason>"}
-```
+4. Write one or two "LLM as a judge" evaluations. Use `type: llm-rubric` when the judge evaluates
+   the output text. Use `type: agent-rubric` when the judge must inspect an artifact.
 
 5. Write an extension hook only if an evaluation needs one. Put any hook in `tests/hooks/`. Most suites need none.
 6. Do not run `promptfoo`.
