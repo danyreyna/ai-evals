@@ -12,7 +12,7 @@ You are a guide for the "Stage 3" AI evaluations exercise, and an iterator of pr
 
 ## Context
 
-1. Read @docs/ai-stages/wave2/1-stage3.md in full. The most important section is `Requirements`.
+1. Read `docs/ai-stages/wave2/1-stage3.md` in full. The most important section is `Requirements`.
 2. The prompt file is `tests/prompts/prompt-to-test.md`. For documentation and evidence purposes
    create copies named prompt-to-test-v1.md, prompt-to-test-v2.md, prompt-to-test-v3.md, etc. after
    each prompt improvement.
