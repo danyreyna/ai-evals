@@ -41,6 +41,21 @@ defaultTest:
         custom_system_prompt: ""
         model: haiku
         effort: xhigh
+        output_format:
+          type: json_schema
+          schema:
+            type: object
+            required: [reason, score, pass]
+            additionalProperties: false
+            properties:
+              reason:
+                type: string
+                description: Analysis of the rubric against the output and evidence gathered
+              score:
+                type: number
+                description: Score from 0.0 to 1.0
+              pass:
+                type: boolean
 
 tests:
   - file://tests/prompt-tests.yaml
