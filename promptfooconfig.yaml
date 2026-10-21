@@ -5,7 +5,7 @@
 description: "TODO"
 
 prompts:
-  - file://tests/prompts/prompt-to-test.md
+  - file://prompts/prompt-to-test.md
 
 providers:
   - id: anthropic:claude-agent-sdk
