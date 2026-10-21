@@ -30,6 +30,7 @@ The prompt may not exist yet, since evaluations usually go first.
 4. If needed, write `.mjs` assertions to `tests/assertions/` and extension hooks to `tests/hooks/`
 5. Save the new tests at `tests/prompt-tests.yaml`. Replace the existing example tests in the file,
    these boilerplate tests are not relevant for the prompt to test.
+6. Update the "TODO" `description` at `promptfooconfig.yaml`
 
 ## Constraints
 
