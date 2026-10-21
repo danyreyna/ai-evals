@@ -25,9 +25,10 @@ The prompt may not exist yet, since evaluations usually go first.
 1. The prompt under test will ask an agent to perform the following user-given prompt task.
    If the prompt task is empty, stop and ask the user to describe it. Do not guess the prompt task.
    <prompt_task>$ARGUMENTS</prompt_task>
-2. Generate promptfoo tests and assertions for the task. Follow the `promptfoo-evals` skill.
-3. If needed, write `.mjs` assertions to `tests/assertions/` and extension hooks to `tests/hooks/`
-4. Save the new tests at `tests/prompt-tests.yaml`. Replace the existing example tests in the file,
+2. **Define test cases:** Identify core use cases and failure modes. Prepare test cases that represent these scenarios.
+3. Generate promptfoo tests and assertions for the task. Follow the `promptfoo-evals` skill.
+4. If needed, write `.mjs` assertions to `tests/assertions/` and extension hooks to `tests/hooks/`
+5. Save the new tests at `tests/prompt-tests.yaml`. Replace the existing example tests in the file,
    these boilerplate tests are not relevant for the prompt to test.
 
 ## Constraints
