@@ -2,7 +2,7 @@
   "name": "ai-evals",
   "private": true,
   "type": "module",
-  "module": "working-dir/index.ts",
+  "module": "index.ts",
   "scripts": {
     "eval": "promptfoo eval --no-cache",
     "optimize": "promptfoo optimize --validation-split 0.2",
